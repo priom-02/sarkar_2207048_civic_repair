@@ -1,0 +1,39 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Notification extends Model
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'issue_id',
+        'message',
+        'is_read',
+    ];
+
+    protected $casts = [
+        'is_read' => 'boolean',
+    ];
+
+    /**
+     * Get the user this notification is for.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the issue this notification is about.
+     */
+    public function issue(): BelongsTo
+    {
+        return $this->belongsTo(Issue::class);
+    }
+}
