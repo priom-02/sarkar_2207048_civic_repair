@@ -32,17 +32,23 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        // Check if user account is active
-        $user = User::where('email', $request->email)->first();
+        // Check if user account exists and is active
+        $user = User::where('email', strtolower($request->email))->first();
 
-        if (!$user || !$user->is_active) {
+        if (!$user) {
             return back()
                 ->withInput($request->only('email'))
-                ->withErrors(['email' => 'Account not found or inactive.']);
+                ->withErrors(['email' => 'Account not found.']);
+        }
+
+        if (!$user->is_active) {
+            return back()
+                ->withInput($request->only('email'))
+                ->withErrors(['email' => 'Account is inactive.']);
         }
 
         // Attempt authentication
-        if (Auth::attempt($credentials, $request->filled('remember'))) {
+        if (Auth::attempt(['email' => strtolower($request->email), 'password' => $request->password], $request->filled('remember'))) {
             $request->session()->regenerate();
 
             // Redirect based on role
@@ -52,7 +58,7 @@ class AuthController extends Controller
 
         return back()
             ->withInput($request->only('email'))
-            ->withErrors(['password' => 'Invalid credentials.']);
+            ->withErrors(['password' => 'Invalid password.']);
     }
 
     /**
