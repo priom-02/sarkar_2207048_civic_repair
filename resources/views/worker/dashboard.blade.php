@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Worker Dashboard - Field Operations Portal</title>
     <link rel="stylesheet" href="{{ asset('css/worker.css') }}">
 </head>
@@ -47,96 +48,8 @@
                     </div>
 
                     <!-- Progress Bento Grid -->
-                    <div class="bento-grid">
-                        <!-- Work Order Card 1 -->
-                        <div class="bento-card urgent" data-order-id="1">
-                            <div class="card-header">
-                                <h3>Pothole Repair</h3>
-                                <span class="urgency-badge urgent">🔴 High Priority</span>
-                            </div>
-                            <p class="location">📍 Downtown - Maple Ave</p>
-                            <div class="card-details">
-                                <span class="status-badge assigned">Assigned</span>
-                                <span class="time">2 hours ago</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 15%"></div>
-                            </div>
-                            <p class="completion">15% Complete</p>
-                            <button class="update-btn" onclick="openStatusModal(1, 'Pothole Repair', 'assigned')">Update Status</button>
-                        </div>
-
-                        <!-- Work Order Card 2 -->
-                        <div class="bento-card" data-order-id="2">
-                            <div class="card-header">
-                                <h3>Trash Bin Service</h3>
-                                <span class="urgency-badge">🟡 Medium</span>
-                            </div>
-                            <p class="location">📍 Downtown - Central Park</p>
-                            <div class="card-details">
-                                <span class="status-badge working">Working</span>
-                                <span class="time">30 min ago</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 65%"></div>
-                            </div>
-                            <p class="completion">65% Complete</p>
-                            <button class="update-btn" onclick="openStatusModal(2, 'Trash Bin Service', 'working')">Update Status</button>
-                        </div>
-
-                        <!-- Work Order Card 3 -->
-                        <div class="bento-card wide" data-order-id="3">
-                            <div class="card-header">
-                                <h3>Street Light Installation</h3>
-                                <span class="urgency-badge">🟢 Low Priority</span>
-                            </div>
-                            <p class="location">📍 West Side - Oak Street</p>
-                            <div class="card-details">
-                                <span class="status-badge completed">Completed</span>
-                                <span class="time">1 hour ago</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill success" style="width: 100%"></div>
-                            </div>
-                            <p class="completion">100% Complete ✓</p>
-                            <button class="update-btn completed" onclick="openStatusModal(3, 'Street Light Installation', 'completed')" disabled>Completed</button>
-                        </div>
-
-                        <!-- Work Order Card 4 -->
-                        <div class="bento-card" data-order-id="4">
-                            <div class="card-header">
-                                <h3>Water Main Leak</h3>
-                                <span class="urgency-badge urgent">🔴 High Priority</span>
-                            </div>
-                            <p class="location">📍 East Side - 5th Street</p>
-                            <div class="card-details">
-                                <span class="status-badge assigned">Assigned</span>
-                                <span class="time">45 min ago</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 25%"></div>
-                            </div>
-                            <p class="completion">25% Complete</p>
-                            <button class="update-btn" onclick="openStatusModal(4, 'Water Main Leak', 'assigned')">Update Status</button>
-                        </div>
-
-                        <!-- Work Order Card 5 -->
-                        <div class="bento-card" data-order-id="5">
-                            <div class="card-header">
-                                <h3>Sidewalk Repair</h3>
-                                <span class="urgency-badge">🟡 Medium</span>
-                            </div>
-                            <p class="location">📍 North Side - Park Lane</p>
-                            <div class="card-details">
-                                <span class="status-badge working">Working</span>
-                                <span class="time">1 hour ago</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 80%"></div>
-                            </div>
-                            <p class="completion">80% Complete</p>
-                            <button class="update-btn" onclick="openStatusModal(5, 'Sidewalk Repair', 'working')">Update Status</button>
-                        </div>
+                    <div class="bento-grid" id="workOrdersGrid">
+                        <!-- Dynamic work orders will be rendered here by JavaScript -->
                     </div>
                 </section>
             </div>
@@ -170,30 +83,7 @@
 
                             <!-- Incident Pins -->
                             <g id="pins">
-                                <!-- High Priority Pin 1 (Downtown) - Pothole -->
-                                <circle cx="80" cy="80" r="8" fill="#ff4444" opacity="0.8" class="incident-pin urgent" data-order="1"/>
-                                <circle cx="80" cy="80" r="12" fill="#ff4444" opacity="0.3" r="12" class="pulse"/>
-                                <text x="75" y="85" font-size="14" fill="white" font-weight="bold">1</text>
-
-                                <!-- Medium Priority Pin 2 (Central) - Trash Bins -->
-                                <circle cx="250" cy="120" r="8" fill="#ffaa00" opacity="0.8" class="incident-pin" data-order="2"/>
-                                <circle cx="250" cy="120" r="12" fill="#ffaa00" opacity="0.3" class="pulse"/>
-                                <text x="245" y="125" font-size="14" fill="white" font-weight="bold">2</text>
-
-                                <!-- Completed Pin 3 (Central) - Street Light -->
-                                <circle cx="280" cy="200" r="8" fill="#44aa44" opacity="0.8" class="incident-pin" data-order="3"/>
-                                <circle cx="280" cy="200" r="12" fill="#44aa44" opacity="0.3" class="pulse"/>
-                                <text x="275" y="205" font-size="14" fill="white" font-weight="bold">3</text>
-
-                                <!-- High Priority Pin 4 (East) - Water Leak -->
-                                <circle cx="500" cy="250" r="8" fill="#ff4444" opacity="0.8" class="incident-pin urgent" data-order="4"/>
-                                <circle cx="500" cy="250" r="12" fill="#ff4444" opacity="0.3" class="pulse"/>
-                                <text x="495" y="255" font-size="14" fill="white" font-weight="bold">4</text>
-
-                                <!-- Medium Priority Pin 5 (North) - Sidewalk -->
-                                <circle cx="100" cy="320" r="8" fill="#ffaa00" opacity="0.8" class="incident-pin" data-order="5"/>
-                                <circle cx="100" cy="320" r="12" fill="#ffaa00" opacity="0.3" class="pulse"/>
-                                <text x="95" y="325" font-size="14" fill="white" font-weight="bold">5</text>
+                                <!-- Dynamic pins will be plotted here by JavaScript -->
                             </g>
                         </svg>
                         
@@ -308,6 +198,11 @@
         <span id="notificationText">Status updated successfully!</span>
     </div>
 
+    <script>
+        window.AppConfig = {
+            apiBaseUrl: "{{ request()->getBaseUrl() }}"
+        };
+    </script>
     <script src="{{ asset('js/worker.js') }}"></script>
 </body>
 </html>
