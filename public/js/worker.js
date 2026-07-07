@@ -3,16 +3,12 @@
    JavaScript Functionality
    ============================================ */
 
+const apiBase = window.AppConfig?.apiBaseUrl || '';
+
 // State Management
+let currentAssignments = [];
 let currentOrder = null;
 let selectedStatus = null;
-const workOrders = {
-    1: { title: 'Pothole Repair', status: 'assigned', location: 'Downtown - Maple Ave' },
-    2: { title: 'Trash Bin Service', status: 'working', location: 'Downtown - Central Park' },
-    3: { title: 'Street Light Installation', status: 'completed', location: 'West Side - Oak Street' },
-    4: { title: 'Water Main Leak', status: 'assigned', location: 'East Side - 5th Street' },
-    5: { title: 'Sidewalk Repair', status: 'working', location: 'North Side - Park Lane' }
-};
 
 // ============================================
 // INITIALIZATION
@@ -20,9 +16,46 @@ const workOrders = {
 
 document.addEventListener('DOMContentLoaded', function() {
     initializeTime();
-    initializeMap();
+    fetchAssignments();
     initializeEventListeners();
 });
+
+// ============================================
+// API COMMUNICATION
+// ============================================
+
+async function fetchAssignments() {
+    try {
+        const response = await fetch(`${apiBase}/worker/api/assignments`);
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        
+        currentAssignments = data.assignments;
+        
+        // Update Stats Overview
+        updateStats(data.stats);
+        
+        // Render Bento Cards
+        renderBentoGrid(data.assignments);
+        
+        // Plot SVG map pins
+        plotMapPins(data.assignments);
+        
+    } catch (error) {
+        console.error('Error fetching worker assignments:', error);
+    }
+}
+
+function updateStats(stats) {
+    const statNumbers = document.querySelectorAll('.stats-overview .stat-number');
+    if (statNumbers.length >= 3) {
+        statNumbers[0].textContent = stats.total;
+        statNumbers[1].textContent = stats.high;
+        statNumbers[2].textContent = stats.completed;
+    }
+}
 
 // ============================================
 // TIME & CLOCK
@@ -36,6 +69,7 @@ function initializeTime() {
 function updateTime() {
     const now = new Date();
     const timeElement = document.getElementById('currentTime');
+    if (!timeElement) return;
     
     let hours = now.getHours();
     let minutes = now.getMinutes();
@@ -49,29 +83,119 @@ function updateTime() {
 }
 
 // ============================================
-// MAP INITIALIZATION
+// MAP PLOTTING
 // ============================================
 
-function initializeMap() {
-    const mapSvg = document.querySelector('.map-svg');
-    const pins = mapSvg.querySelectorAll('.incident-pin');
+function plotMapPins(assignments) {
+    const pinsContainer = document.getElementById('pins');
+    if (!pinsContainer) return;
     
-    pins.forEach(pin => {
-        pin.addEventListener('click', function(e) {
+    pinsContainer.innerHTML = assignments.map((order, index) => {
+        if (order.status === 'completed') return ''; // Don't plot resolved items
+        
+        const { cx, cy } = mapCoordinates(order.latitude, order.longitude);
+        const pinColor = order.priority === 'High' ? '#ff4444' : '#ffaa00';
+        
+        return `
+            <g class="map-pin-group" data-order="${order.id}" style="cursor: pointer;">
+                <circle cx="${cx}" cy="${cy}" r="8" fill="${pinColor}" opacity="0.8" class="incident-pin" />
+                <circle cx="${cx}" cy="${cy}" r="12" fill="${pinColor}" opacity="0.3" class="pulse" />
+                <text x="${cx - 4}" y="${cy + 4}" font-size="11" fill="white" font-weight="bold">${index + 1}</text>
+            </g>
+        `;
+    }).join('');
+    
+    // Attach events to map pins
+    pinsContainer.querySelectorAll('.map-pin-group').forEach(group => {
+        const orderId = group.getAttribute('data-order');
+        const order = currentAssignments.find(a => a.id == orderId);
+        
+        group.addEventListener('click', (e) => {
             e.stopPropagation();
-            const orderId = this.getAttribute('data-order');
-            openStatusModal(orderId, workOrders[orderId].title, workOrders[orderId].status);
+            openStatusModal(order.id, order.title, order.status);
         });
         
-        pin.addEventListener('mouseenter', function() {
-            const orderId = this.getAttribute('data-order');
+        group.addEventListener('mouseenter', () => {
             highlightCard(orderId);
         });
         
-        pin.addEventListener('mouseleave', function() {
+        group.addEventListener('mouseleave', () => {
             removeCardHighlight();
         });
     });
+}
+
+function mapCoordinates(lat, lng) {
+    if (!lat || !lng) {
+        // Fallback standard points inside grid if coordinates not provided
+        return { cx: Math.random() * 400 + 100, cy: Math.random() * 250 + 75 };
+    }
+    
+    // Coordinate bounding for Dhaka metropolitan areas (Uttara to Old Dhaka, Mirpur to Motijheel)
+    const latMin = 23.7000;
+    const latMax = 23.8900;
+    const lngMin = 90.3500;
+    const lngMax = 90.4300;
+    
+    // Invert Y axis because in SVG 0 is top
+    const cx = ((lng - lngMin) / (lngMax - lngMin)) * 500 + 50;
+    const cy = 400 - (((lat - latMin) / (latMax - latMin)) * 300 + 50);
+    
+    return { cx, cy };
+}
+
+// ============================================
+// BENTO GRID RENDERING
+// ============================================
+
+function renderBentoGrid(assignments) {
+    const grid = document.getElementById('workOrdersGrid');
+    if (!grid) return;
+    
+    if (assignments.length === 0) {
+        grid.innerHTML = '<div style="text-align: center; padding: 3rem; color: var(--light-text); font-weight: 500; grid-column: 1/-1;">No active work orders assigned to you today.</div>';
+        return;
+    }
+    
+    grid.innerHTML = assignments.map((order, index) => {
+        const statusLabel = {
+            assigned: 'Assigned',
+            working: 'Working',
+            completed: 'Completed'
+        }[order.status];
+        
+        const cardClass = order.status === 'completed' ? 'bento-card wide' : (order.priority === 'High' ? 'bento-card urgent' : 'bento-card');
+        const progressClass = order.status === 'completed' ? 'progress-fill success' : 'progress-fill';
+        const buttonClass = order.status === 'completed' ? 'update-btn completed' : 'update-btn';
+        const disabledAttr = order.status === 'completed' ? 'disabled' : '';
+        const buttonText = order.status === 'completed' ? 'Completed' : 'Update Status';
+
+        return `
+            <div class="${cardClass}" data-order-id="${order.id}">
+                <div class="card-header">
+                    <h3>${index + 1}. ${escapeHtml(order.title)}</h3>
+                    <span class="urgency-badge ${order.priority === 'High' ? 'urgent' : ''}">${order.priority_badge}</span>
+                </div>
+                <p class="location">${escapeHtml(order.location)}</p>
+                <div class="card-details">
+                    <span class="status-badge ${order.status}">${statusLabel}</span>
+                    <span class="time">${order.time_ago}</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="${progressClass}" style="width: ${order.progress}%"></div>
+                </div>
+                <p class="completion">${order.status === 'completed' ? '100% Complete ✓' : `${order.progress}% Complete`}</p>
+                <button class="${buttonClass}" ${disabledAttr} onclick="openStatusModal(${order.id}, '${escapeHtml(order.title)}', '${order.status}')">${buttonText}</button>
+            </div>
+        `;
+    }).join('');
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // ============================================
@@ -92,15 +216,6 @@ function initializeEventListeners() {
             closeStatusModal();
         }
     });
-    
-    // Map incident pin interactions
-    const incidentPins = document.querySelectorAll('.incident-pin');
-    incidentPins.forEach(pin => {
-        pin.addEventListener('click', function() {
-            const orderId = this.getAttribute('data-order');
-            openStatusModal(orderId, workOrders[orderId].title, workOrders[orderId].status);
-        });
-    });
 }
 
 // ============================================
@@ -111,6 +226,9 @@ function openStatusModal(orderId, title, status) {
     currentOrder = orderId;
     selectedStatus = status;
     
+    const order = currentAssignments.find(a => a.id == orderId);
+    if (!order) return;
+    
     const modal = document.getElementById('statusModal');
     const modalTitle = document.getElementById('modalTitle');
     const currentStatusDisplay = document.getElementById('currentStatusDisplay');
@@ -119,16 +237,40 @@ function openStatusModal(orderId, title, status) {
     currentStatusDisplay.textContent = status.charAt(0).toUpperCase() + status.slice(1);
     updateStatusBadgeColor(currentStatusDisplay, status);
     
-    // Reset form
+    // Reset form fields
     document.getElementById('progressNotes').value = '';
-    document.getElementById('photoUpload').value = '';
     
-    // Reset status selection
+    const uploadArea = document.querySelector('.upload-area');
+    if (uploadArea) {
+        uploadArea.innerHTML = `
+            <div class="upload-icon">📷</div>
+            <p>Click to upload photos</p>
+            <input type="file" id="photoUpload" accept="image/*" style="display: none;">
+        `;
+        attachPhotoListener();
+    }
+    
+    // Render status logs dynamically
+    const updatesFeed = document.querySelector('.updates-feed');
+    if (updatesFeed) {
+        if (order.updates && order.updates.length > 0) {
+            const feedHtml = order.updates.map(u => `
+                <div class="update-item">
+                    <span class="update-time">${u.time}</span>
+                    <span class="update-status">${escapeHtml(u.status)}</span>
+                </div>
+            `).join('');
+            updatesFeed.innerHTML = `<label class="modal-label">Recent Updates:</label>${feedHtml}`;
+        } else {
+            updatesFeed.innerHTML = `<label class="modal-label">Recent Updates:</label><p style="font-size: 0.85rem; color: var(--light-text); padding-left: 5px;">No updates logged yet.</p>`;
+        }
+    }
+    
+    // Reset active buttons
     document.querySelectorAll('.status-option').forEach(opt => {
         opt.classList.remove('active');
         if (opt.getAttribute('data-status') === status) {
             opt.classList.add('active');
-            selectedStatus = status;
         }
     });
     
@@ -175,7 +317,7 @@ function selectStatus(status) {
     });
 }
 
-function submitStatusUpdate() {
+async function submitStatusUpdate() {
     if (!selectedStatus) {
         showNotification('Please select a status', 'error');
         return;
@@ -186,78 +328,46 @@ function submitStatusUpdate() {
         return;
     }
     
-    const notes = document.getElementById('progressNotes').value;
-    const photoFile = document.getElementById('photoUpload').files[0];
-    
-    // Update work order in state
-    workOrders[currentOrder].status = selectedStatus;
-    
-    // Update card UI
-    updateCardStatus(currentOrder, selectedStatus);
-    
-    // Show success notification
-    const orderTitle = workOrders[currentOrder].title;
-    showNotification(`✓ ${orderTitle} updated to ${selectedStatus}`, 'success');
-    
-    // Log the update (in production, send to server)
-    console.log({
-        orderId: currentOrder,
-        newStatus: selectedStatus,
-        notes: notes,
-        photo: photoFile ? photoFile.name : 'none',
-        timestamp: new Date().toISOString()
-    });
-    
-    // Close modal after a short delay
-    setTimeout(() => {
-        closeStatusModal();
-    }, 500);
-}
+    const notes = document.getElementById('progressNotes').value.trim();
+    const photoUpload = document.getElementById('photoUpload');
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-function updateCardStatus(orderId, newStatus) {
-    const card = document.querySelector(`[data-order-id="${orderId}"]`);
-    if (!card) return;
-    
-    // Update status badge
-    const statusBadge = card.querySelector('.status-badge');
-    statusBadge.className = `status-badge ${newStatus}`;
-    statusBadge.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
-    
-    // Update progress bar if completing
-    if (newStatus === 'completed') {
-        const progressFill = card.querySelector('.progress-fill');
-        progressFill.style.width = '100%';
-        progressFill.classList.add('success');
-        card.querySelector('.completion').textContent = '100% Complete ✓';
-        card.querySelector('.update-btn').classList.add('completed');
-        card.querySelector('.update-btn').textContent = 'Completed';
-        card.querySelector('.update-btn').disabled = true;
-    } else if (newStatus === 'working') {
-        const progressFill = card.querySelector('.progress-fill');
-        if (parseInt(progressFill.style.width) < 50) {
-            progressFill.style.width = '50%';
-            card.querySelector('.completion').textContent = '50% Complete';
-        }
+    const formData = new FormData();
+    formData.append('status', selectedStatus);
+    if (notes) {
+        formData.append('notes', notes);
     }
-    
-    // Update card urgency status
-    card.classList.remove('urgent');
-    if (newStatus !== 'completed') {
-        const urgencyBadge = card.querySelector('.urgency-badge');
-        if (urgencyBadge.textContent.includes('High Priority')) {
-            card.classList.add('urgent');
-        }
+    if (photoUpload && photoUpload.files.length > 0) {
+        formData.append('photo', photoUpload.files[0]);
     }
-    
-    // Animate card update
-    card.style.animation = 'none';
-    setTimeout(() => {
-        card.style.animation = 'slideInLeft 0.3s ease-out';
-    }, 10);
+
+    try {
+        const response = await fetch(`${apiBase}/worker/api/assignments/${currentOrder}/status`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: formData
+        });
+
+        if (!response.ok) throw new Error('Status update failed');
+        
+        const data = await response.json();
+        if (data.success) {
+            showNotification('✓ Work status updated successfully!', 'success');
+            closeStatusModal();
+            fetchAssignments();
+        } else {
+            showNotification(data.message || 'Could not update status', 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting status update:', error);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
 }
 
 // ============================================
-// CARD INTERACTIONS
+// CARD HIGHLIGHTS
 // ============================================
 
 function highlightCard(orderId) {
@@ -265,6 +375,7 @@ function highlightCard(orderId) {
     if (card) {
         card.style.boxShadow = '0 12px 30px rgba(102, 126, 234, 0.4)';
         card.style.transform = 'translateY(-8px) scale(1.02)';
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
@@ -282,97 +393,50 @@ function removeCardHighlight() {
 
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');
-    const notificationText = document.getElementById('notificationText');
+    if (!notification) {
+        alert(message);
+        return;
+    }
+    notification.textContent = message;
     
-    notificationText.textContent = message;
+    if (type === 'error') {
+        notification.style.background = '#ef4444';
+    } else {
+        notification.style.background = '#10b981';
+    }
+    
     notification.classList.add('show');
-    
-    // Auto-hide after 3 seconds
     setTimeout(() => {
         notification.classList.remove('show');
     }, 3000);
 }
 
 // ============================================
-// PHOTO UPLOAD
+// PHOTO UPLOAD LISTENER HELPERS
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
+function attachPhotoListener() {
     const uploadArea = document.querySelector('.upload-area');
     const photoUpload = document.getElementById('photoUpload');
     
-    if (uploadArea) {
+    if (uploadArea && photoUpload) {
         uploadArea.addEventListener('click', function() {
             photoUpload.click();
         });
         
-        // Drag and drop
-        uploadArea.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#764ba2';
-            uploadArea.style.background = '#f0f4ff';
-        });
-        
-        uploadArea.addEventListener('dragleave', function() {
-            uploadArea.style.borderColor = '#667eea';
-            uploadArea.style.background = '#f8f9ff';
-        });
-        
-        uploadArea.addEventListener('drop', function(e) {
-            e.preventDefault();
-            uploadArea.style.borderColor = '#667eea';
-            uploadArea.style.background = '#f8f9ff';
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                photoUpload.files = files;
-                showNotification(`📷 Photo added: ${files[0].name}`);
-            }
-        });
-    }
-    
-    if (photoUpload) {
         photoUpload.addEventListener('change', function(e) {
             if (this.files.length > 0) {
                 const fileName = this.files[0].name;
-                const uploadArea = document.querySelector('.upload-area');
                 uploadArea.innerHTML = `
-                    <div class="upload-icon">✓</div>
-                    <p style="color: #16a34a;">Photo selected: ${fileName}</p>
+                    <div class="upload-icon" style="color: #10b981;">✓</div>
+                    <p style="color: #10b981; font-weight: 500;">Photo selected: ${fileName}</p>
+                    <input type="file" id="photoUpload" accept="image/*" style="display: none;">
                 `;
+                // Keep file reference bound to input inside new html state
+                const newUpload = document.getElementById('photoUpload');
+                newUpload.files = e.target.files;
+                attachPhotoListener(); // Re-bind clicks
             }
         });
     }
-});
-
-// ============================================
-// RESPONSIVE ADJUSTMENTS
-// ============================================
-
-function adjustForScreenSize() {
-    const width = window.innerWidth;
-    
-    if (width < 1200) {
-        // Adjust grid layout
-        const main = document.querySelector('.worker-main');
-        if (main) {
-            main.style.gridTemplateColumns = '1fr';
-        }
-    }
 }
-
-window.addEventListener('resize', adjustForScreenSize);
-
-// ============================================
-// KEYBOARD SHORTCUTS
-// ============================================
-
-document.addEventListener('keydown', function(e) {
-    // Alt + Q to open status modal for first order
-    if (e.altKey && e.key === 'q') {
-        e.preventDefault();
-        openStatusModal(1, workOrders[1].title, workOrders[1].status);
-    }
-});
-
-console.log('Worker Dashboard initialized successfully! 🚀');

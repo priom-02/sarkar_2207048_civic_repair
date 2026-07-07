@@ -37,13 +37,35 @@
         }
 
         .logo {
-            font-size: 1.8rem;
-            font-weight: 700;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            color: #2563eb;
             cursor: pointer;
+        }
+
+        .logo-icon-container {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .custom-logo-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #0f2d59;
+            letter-spacing: -0.03em;
+            text-transform: lowercase;
+        }
+
+        .logo-text-accent {
+            color: #3182ce;
         }
 
         .nav-links {
@@ -477,15 +499,34 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <div class="logo">🏛️ CivicReport</div>
+            <div class="logo" onclick="window.location.reload()">
+                <div class="logo-icon-container">
+                    <svg class="custom-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Document sheet -->
+                        <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" />
+                        <!-- Lines on document -->
+                        <line x1="61" y1="58" x2="76" y2="58" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="66" x2="76" y2="66" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="74" x2="76" y2="74" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
+                        <!-- Speech bubble -->
+                        <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#0f2d59" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Buildings inside speech bubble -->
+                        <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#4299e1" />
+                        <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#3182ce" />
+                        <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#2b6cb0" />
+                    </svg>
+                </div>
+                <span class="logo-text">civic <span class="logo-text-accent">report</span></span>
+            </div>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#user-types">For You</a></li>
             </ul>
             <div class="auth-buttons">
-                <a href="/login" class="btn-login">Sign In</a>
-                <a href="/register" class="btn-signup">Get Started</a>
+                <a href="{{ route('login') }}" class="btn-login">Sign In</a>
+                <a href="{{ route('register') }}" class="btn-signup">Get Started</a>
             </div>
         </div>
     </nav>
@@ -496,11 +537,12 @@
             <h1>Empower Your Neighborhood</h1>
             <p>Report civic issues, track progress, and build a better community. Your voice matters!</p>
             <div class="hero-buttons">
-                <a href="/register" class="btn-primary">📍 Start Reporting Now</a>
+                <a href="{{ route('register') }}" class="btn-primary">📍 Start Reporting Now</a>
                 <a href="#how-it-works" class="btn-secondary">Learn More</a>
             </div>
         </div>
     </section>
+
 
     <!-- Features Section -->
     <section class="features" id="features">
@@ -595,19 +637,19 @@
                     <div class="type-icon">👤</div>
                     <h3>Citizens</h3>
                     <p>Report civic issues and participate in your community's improvement. Vote on issues and see real progress.</p>
-                    <a href="/login" class="btn-signup" onclick="window.location.href='/login'; return false;">Sign In as Citizen</a>
+                    <a href="{{ route('login') }}" class="btn-signup">Sign In as Citizen</a>
                 </div>
                 <div class="type-card">
                     <div class="type-icon">👷</div>
                     <h3>Workers</h3>
                     <p>Get assigned to civic projects and make a direct impact. Update status and resolve community issues.</p>
-                    <a href="/login" class="btn-signup" onclick="window.location.href='/login'; return false;">Sign In as Worker</a>
+                    <a href="{{ route('login') }}" class="btn-signup">Sign In as Worker</a>
                 </div>
                 <div class="type-card">
                     <div class="type-icon">👨‍💼</div>
                     <h3>Administrators</h3>
                     <p>Manage the platform, assign workers, and oversee operations. (Contact platform admin)</p>
-                    <a href="/login" class="btn-signup" onclick="window.location.href='/login'; return false;">Admin Login</a>
+                    <a href="{{ route('login') }}" class="btn-signup">Admin Login</a>
                 </div>
             </div>
         </div>
@@ -618,8 +660,8 @@
         <h2>Ready to Make a Difference?</h2>
         <p>Join thousands of citizens working together to improve their neighborhoods</p>
         <div class="hero-buttons">
-            <a href="/register" class="btn-primary">Get Started Today</a>
-            <a href="/login" class="btn-secondary">I Already Have an Account</a>
+            <a href="{{ route('register') }}" class="btn-primary">Get Started Today</a>
+            <a href="{{ route('login') }}" class="btn-secondary">I Already Have an Account</a>
         </div>
     </section>
 
@@ -654,24 +696,6 @@
                     }
                 });
             });
-
-            // Navigation links
-            const loginBtn = document.querySelector('a[href="/login"]');
-            const registerBtn = document.querySelector('a[href="/register"]');
-
-            if (loginBtn) {
-                loginBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.location.href = '/login';
-                });
-            }
-
-            if (registerBtn) {
-                registerBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    window.location.href = '/register';
-                });
-            }
         });
     </script>
 </body>
