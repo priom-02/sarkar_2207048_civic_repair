@@ -50,6 +50,9 @@ function openModal(modalId) {
     if (modal) {
         modal.classList.add('active');
         overlay.classList.add('active');
+        if (modalId === 'reportModal') {
+            initReportMap();
+        }
     }
 }
 
@@ -467,6 +470,13 @@ async function handleReportFormSubmit(e) {
         formData.append('description', description);
         formData.append('category_id', categoryId);
         formData.append('area_id', areaId);
+        
+        const latVal = document.getElementById('issueLat').value;
+        const lngVal = document.getElementById('issueLng').value;
+        if (latVal && lngVal) {
+            formData.append('latitude', latVal);
+            formData.append('longitude', lngVal);
+        }
 
         if (photoInput && photoInput.files.length > 0) {
             for (let i = 0; i < photoInput.files.length; i++) {
@@ -491,6 +501,7 @@ async function handleReportFormSubmit(e) {
             
             alert('Issue reported successfully! Thank you for helping improve our neighborhood.');
             fetchIssues();
+            fetchMyReports();
         } else {
             alert(data.message || 'Could not save report. Please check input data.');
         }
@@ -574,6 +585,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Load citizen's own space data
+    fetchMyReports();
+
+    // Initialize cascading area hierarchy selector
+    initAreaCascadingSelector();
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -583,4 +600,246 @@ document.addEventListener('DOMContentLoaded', function() {
             openModal('reportModal');
         });
     }
+    
+    // Load citizen's own space data
+    fetchMyReports();
 });
+
+// =====================================
+// MY SPACE (PROFILE & MY REPORTS)
+// =====================================
+
+async function fetchMyReports() {
+    try {
+        const response = await fetch(`${apiBase}/citizen/api/issues?my_reports=1`);
+        if (!response.ok) throw new Error('Failed to fetch my reports');
+        const data = await response.json();
+        renderMyReportsTable(data.issues);
+    } catch (error) {
+        console.error('Error fetching my reports:', error);
+        const tbody = document.getElementById('myReportsTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #e53e3e; padding: 2rem;">Error loading your reports.</td></tr>`;
+        }
+    }
+}
+
+function renderMyReportsTable(issues) {
+    const tbody = document.getElementById('myReportsTableBody');
+    if (!tbody) return;
+
+    if (issues.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #718096; padding: 3rem 0; font-style: italic;">You have not reported any issues yet.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = issues.map(issue => {
+        let statusColor = '#4a5568';
+        let statusBg = '#edf2f7';
+        if (issue.status_name === 'Pending') {
+            statusColor = '#9b59b6';
+            statusBg = '#f3e5f5';
+        } else if (issue.status_name === 'Acknowledged') {
+            statusColor = '#2b6cb0';
+            statusBg = '#ebf8ff';
+        } else if (issue.status_name === 'In Progress') {
+            statusColor = '#d69e2e';
+            statusBg = '#fefcbf';
+        } else if (issue.status_name === 'Resolved') {
+            statusColor = '#2f855a';
+            statusBg = '#f0fff4';
+        } else if (issue.status_name === 'Closed') {
+            statusColor = '#2d3748';
+            statusBg = '#edf2f7';
+        } else if (issue.status_name === 'Rejected') {
+            statusColor = '#c53030';
+            statusBg = '#fff5f5';
+        }
+
+        return `
+            <tr style="border-bottom: 1px solid #edf2f7; font-size: 0.95rem;">
+                <td style="padding: 1rem 0.5rem; font-weight: 600; color: #2d3748;">${escapeHtml(issue.title)}</td>
+                <td style="padding: 1rem 0.5rem; color: #4a5568;">${escapeHtml(issue.category_name)}</td>
+                <td style="padding: 1rem 0.5rem;">
+                    <span style="background: ${statusBg}; color: ${statusColor}; font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; display: inline-block;">${escapeHtml(issue.status_name)}</span>
+                </td>
+                <td style="padding: 1rem 0.5rem; font-weight: 600; color: #4a5568;">👍 ${issue.votes}</td>
+                <td style="padding: 1rem 0.5rem; text-align: right;">
+                    <button onclick="openDetailsModal(${issue.id})" style="background: #3182ce; color: white; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">View Status</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+window.openDetailsModal = openDetailsModal;
+window.fetchMyReports = fetchMyReports;
+
+// =====================================
+// MAP LOCATION PICKER SELECTOR
+// =====================================
+
+let selectionMap = null;
+let selectionMarker = null;
+
+function initReportMap() {
+    const defaultLat = 23.8103;
+    const defaultLng = 90.4125;
+
+    document.getElementById('issueLat').value = defaultLat;
+    document.getElementById('issueLng').value = defaultLng;
+
+    if (selectionMap) {
+        setTimeout(() => {
+            selectionMap.invalidateSize();
+            selectionMarker.setLatLng([defaultLat, defaultLng]);
+            selectionMap.setView([defaultLat, defaultLng], 13);
+        }, 200);
+        return;
+    }
+
+    setTimeout(() => {
+        selectionMap = L.map('locationSelectorMap').setView([defaultLat, defaultLng], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(selectionMap);
+
+        selectionMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(selectionMap);
+
+        selectionMarker.on('dragend', function(e) {
+            const pos = selectionMarker.getLatLng();
+            document.getElementById('issueLat').value = pos.lat.toFixed(6);
+            document.getElementById('issueLng').value = pos.lng.toFixed(6);
+        });
+
+        selectionMap.on('click', function(e) {
+            const lat = e.latlng.lat;
+            const lng = e.latlng.lng;
+            selectionMarker.setLatLng([lat, lng]);
+            document.getElementById('issueLat').value = lat.toFixed(6);
+            document.getElementById('issueLng').value = lng.toFixed(6);
+        });
+
+        selectionMap.invalidateSize();
+    }, 200);
+}
+
+function locateUser() {
+    if (!navigator.geolocation) {
+        alert("Geolocation is not supported by your browser");
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            if (selectionMap && selectionMarker) {
+                selectionMarker.setLatLng([lat, lng]);
+                selectionMap.setView([lat, lng], 15);
+                document.getElementById('issueLat').value = lat.toFixed(6);
+                document.getElementById('issueLng').value = lng.toFixed(6);
+            }
+        },
+        (error) => {
+            alert("Unable to retrieve your location. Please select it manually on the map.");
+        }
+    );
+}
+
+window.initReportMap = initReportMap;
+window.locateUser = locateUser;
+
+// =====================================
+// REGION CASCADING AREA SELECTOR
+// =====================================
+
+function initAreaCascadingSelector() {
+    const divisionSelect = document.getElementById('issueDivision');
+    const districtSelect = document.getElementById('issueDistrict');
+    const upazilaSelect = document.getElementById('issueUpazila');
+    const unionSelect = document.getElementById('issueUnion');
+    const hiddenAreaIdInput = document.getElementById('issueArea');
+
+    if (!divisionSelect || !window.allAreas) return;
+
+    // Extract and populate unique Divisions
+    const divisions = [...new Set(window.allAreas.map(a => a.division))].sort();
+    
+    divisionSelect.innerHTML = '<option value="">Select Division</option>' + 
+        divisions.map(div => `<option value="${escapeHtml(div)}">${escapeHtml(div)}</option>`).join('');
+
+    // Division change handler
+    divisionSelect.addEventListener('change', function() {
+        const selectedDivision = this.value;
+        
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        districtSelect.disabled = true;
+        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>';
+        upazilaSelect.disabled = true;
+        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
+        unionSelect.disabled = true;
+        hiddenAreaIdInput.value = '';
+
+        if (!selectedDivision) return;
+
+        const filteredAreas = window.allAreas.filter(a => a.division === selectedDivision);
+        const districts = [...new Set(filteredAreas.map(a => a.district))].sort();
+
+        districtSelect.innerHTML = '<option value="">Select District</option>' + 
+            districts.map(dist => `<option value="${escapeHtml(dist)}">${escapeHtml(dist)}</option>`).join('');
+        districtSelect.disabled = false;
+    });
+
+    // District change handler
+    districtSelect.addEventListener('change', function() {
+        const selectedDivision = divisionSelect.value;
+        const selectedDistrict = this.value;
+
+        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>';
+        upazilaSelect.disabled = true;
+        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
+        unionSelect.disabled = true;
+        hiddenAreaIdInput.value = '';
+
+        if (!selectedDistrict) return;
+
+        const filteredAreas = window.allAreas.filter(a => a.division === selectedDivision && a.district === selectedDistrict);
+        const upazilas = [...new Set(filteredAreas.map(a => a.upazila))].sort();
+
+        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>' + 
+            upazilas.map(upz => `<option value="${escapeHtml(upz)}">${escapeHtml(upz)}</option>`).join('');
+        upazilaSelect.disabled = false;
+    });
+
+    // Upazila change handler
+    upazilaSelect.addEventListener('change', function() {
+        const selectedDivision = divisionSelect.value;
+        const selectedDistrict = districtSelect.value;
+        const selectedUpazila = this.value;
+
+        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
+        unionSelect.disabled = true;
+        hiddenAreaIdInput.value = '';
+
+        if (!selectedUpazila) return;
+
+        const filteredAreas = window.allAreas.filter(a => 
+            a.division === selectedDivision && 
+            a.district === selectedDistrict && 
+            a.upazila === selectedUpazila
+        );
+
+        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>' + 
+            filteredAreas.map(area => `<option value="${area.id}">${escapeHtml(area.union_parishad || area.area_name)}</option>`).join('');
+        unionSelect.disabled = false;
+    });
+
+    // Union change handler (sets final area_id)
+    unionSelect.addEventListener('change', function() {
+        const selectedAreaId = this.value;
+        hiddenAreaIdInput.value = selectedAreaId;
+    });
+}

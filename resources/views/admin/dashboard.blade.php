@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Admin Dashboard - Executive Analytics & Management</title>
+    <title>Admin Dashboard - CivicReport</title>
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <!-- Leaflet Mapping Library CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
     <div class="admin-container">
@@ -13,7 +16,7 @@
         <header class="admin-header">
             <div class="header-content">
                 <div class="header-left">
-                    <h1 class="admin-title">👨‍💼 Admin Control Center</h1>
+                    <h1 class="admin-title">Admin Control Center</h1>
                     <p class="admin-subtitle">Executive Analytics & Platform Management</p>
                 </div>
                 <div class="header-right">
@@ -28,11 +31,20 @@
             </div>
         </header>
 
+        <!-- Tab Navigation Bar -->
+        <div style="background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: center; gap: 1rem; padding: 0.75rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;">
+            <button class="tab-btn active" onclick="switchTab('analytics', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #1e3c72; border-bottom: 3px solid #1e3c72; border-radius: 4px; transition: all 0.2s;">Analytics</button>
+            <button class="tab-btn" onclick="switchTab('complaints', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Complaints</button>
+            <button class="tab-btn" onclick="switchTab('categories', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Categories</button>
+            <button class="tab-btn" onclick="switchTab('users', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Users</button>
+            <button class="tab-btn" onclick="switchTab('areas', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Areas</button>
+        </div>
+
         <!-- Main Content -->
         <main class="admin-main">
             <!-- Executive Analytics Section -->
-            <section class="analytics-section">
-                <h2>📊 Executive Analytics</h2>
+            <section id="analyticsSection" class="analytics-section">
+                <h2>Executive Analytics</h2>
                 
                 <!-- Key Metrics -->
                 <div class="metrics-grid">
@@ -61,80 +73,13 @@
                 <!-- Hotspots Heatmap -->
                 <div class="analytics-grid">
                     <div class="heatmap-container">
-                        <h3>🗺️ Hotspots Heatmap - Report Density</h3>
-                        <div class="map-wrapper">
-                            <svg class="heatmap-svg" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
-                                <!-- City Map Background -->
-                                <defs>
-                                    <radialGradient id="heatspot1" cx="50%" cy="50%">
-                                        <stop offset="0%" style="stop-color:#ff0000;stop-opacity:0.7" />
-                                        <stop offset="100%" style="stop-color:#ff0000;stop-opacity:0" />
-                                    </radialGradient>
-                                    <radialGradient id="heatspot2" cx="50%" cy="50%">
-                                        <stop offset="0%" style="stop-color:#ff9900;stop-opacity:0.6" />
-                                        <stop offset="100%" style="stop-color:#ff9900;stop-opacity:0" />
-                                    </radialGradient>
-                                    <radialGradient id="heatspot3" cx="50%" cy="50%">
-                                        <stop offset="0%" style="stop-color:#ffff00;stop-opacity:0.5" />
-                                        <stop offset="100%" style="stop-color:#ffff00;stop-opacity:0" />
-                                    </radialGradient>
-                                </defs>
-
-                                <!-- Base Map -->
-                                <rect width="800" height="500" fill="#e8eef7" stroke="#999" stroke-width="2"/>
-                                
-                                <!-- City Grid -->
-                                <line x1="0" y1="125" x2="800" y2="125" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-                                <line x1="0" y1="250" x2="800" y2="250" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-                                <line x1="0" y1="375" x2="800" y2="375" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-                                <line x1="200" y1="0" x2="200" y2="500" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-                                <line x1="400" y1="0" x2="400" y2="500" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-                                <line x1="600" y1="0" x2="600" y2="500" stroke="#ddd" stroke-width="1" stroke-dasharray="5,5"/>
-
-                                <!-- Zone Labels -->
-                                <text x="100" y="30" font-size="14" font-weight="bold" fill="#666">Downtown</text>
-                                <text x="300" y="30" font-size="14" font-weight="bold" fill="#666">Central</text>
-                                <text x="550" y="30" font-size="14" font-weight="bold" fill="#666">East Zone</text>
-                                <text x="50" y="450" font-size="14" font-weight="bold" fill="#666">North</text>
-                                <text x="450" y="450" font-size="14" font-weight="bold" fill="#666">South</text>
-
-                                <!-- High Density Heatspots (Red) -->
-                                <circle cx="150" cy="120" r="80" fill="url(#heatspot1)" class="heatspot-critical"/>
-                                <circle cx="650" cy="200" r="70" fill="url(#heatspot1)" class="heatspot-critical"/>
-
-                                <!-- Medium Density Heatspots (Orange) -->
-                                <circle cx="400" cy="150" r="60" fill="url(#heatspot2)" class="heatspot-warning"/>
-                                <circle cx="300" cy="350" r="55" fill="url(#heatspot2)" class="heatspot-warning"/>
-
-                                <!-- Low Density Heatspots (Yellow) -->
-                                <circle cx="600" cy="350" r="50" fill="url(#heatspot3)" class="heatspot-info"/>
-                                <circle cx="100" cy="300" r="45" fill="url(#heatspot3)" class="heatspot-info"/>
-
-                                <!-- Report Pins -->
-                                <g id="report-pins" opacity="0.8">
-                                    <!-- Dynamic pins will be plotted here by JavaScript -->
-                                </g>
-                            </svg>
-                        </div>
-                        <div class="heatmap-legend">
-                            <div class="legend-row">
-                                <span class="legend-swatch critical"></span>
-                                <span>Critical (50+ reports)</span>
-                            </div>
-                            <div class="legend-row">
-                                <span class="legend-swatch warning"></span>
-                                <span>Warning (20-49 reports)</span>
-                            </div>
-                            <div class="legend-row">
-                                <span class="legend-swatch info"></span>
-                                <span>Info (1-19 reports)</span>
-                            </div>
-                        </div>
+                        <h3>Hotspots Heatmap - Report Density</h3>
+                        <div id="liveAdminMap" style="height: 450px; border-radius: 16px; border: 1px solid #cbd5e1; z-index: 1; margin-top: 1.5rem;"></div>
                     </div>
 
                     <!-- Trends Bar Graph -->
                     <div class="trends-container">
-                        <h3>📈 30-Day Trends Analysis</h3>
+                        <h3>30-Day Trends Analysis</h3>
                         <div class="chart-wrapper">
                             <svg class="trends-chart" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                                 <!-- Axes -->
@@ -189,8 +134,8 @@
             </section>
 
             <!-- Category Management Section -->
-            <section class="category-section">
-                <h2>🏷️ Category Management Board</h2>
+            <section id="categoriesSection" class="category-section" style="display: none;">
+                <h2>Category Management Board</h2>
                 
                 <div class="category-layout">
                     <!-- Existing Categories -->
@@ -203,7 +148,7 @@
 
                     <!-- Create New Category Form -->
                     <div class="create-category-box">
-                        <h3>➕ Add New Category</h3>
+                        <h3>Add New Category</h3>
                         <form id="categoryForm" class="category-form">
                             <div class="form-group">
                                 <label for="categoryName">Category Name</label>
@@ -258,8 +203,8 @@
             </section>
 
             <!-- Complaint Assignment & Dispatch Board Section -->
-            <section class="assignments-section">
-                <h2>📋 Complaint Assignment & Dispatch Board</h2>
+            <section id="complaintsSection" class="assignments-section" style="display: none;">
+                <h2>Complaint Assignment & Dispatch Board</h2>
                 <div class="table-container">
                     <table class="assignments-table">
                         <thead>
@@ -280,6 +225,82 @@
                     </table>
                 </div>
             </section>
+
+            <!-- User Management Board Section -->
+            <section id="usersSection" class="assignments-section" style="display: none;">
+                <h2>User Management Board</h2>
+                <div class="table-container">
+                    <table class="assignments-table">
+                        <thead>
+                            <tr>
+                                <th>User Details</th>
+                                <th>Email Address</th>
+                                <th>Phone Number</th>
+                                <th>Role</th>
+                                <th>Account Status</th>
+                                <th>Control Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr>
+                                <td colspan="6" class="loading-text">Loading platform users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Areas Management Section -->
+            <section id="areasSection" class="category-section" style="display: none;">
+                <h2>Geographic Areas Board</h2>
+                
+                <div class="category-layout">
+                    <!-- Existing Areas List -->
+                    <div class="categories-list">
+                        <h3>Registered Areas Catalog</h3>
+                        <div class="table-container" style="background: white; border-radius: 12px; padding: 1rem; border: 1px solid #edf2f7;">
+                            <table class="assignments-table" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #edf2f7; text-align: left; font-size: 0.9rem; color: #4a5568;">
+                                        <th style="padding: 0.75rem 0.5rem;">Hierarchy (Div > Dist > Upz)</th>
+                                        <th style="padding: 0.75rem 0.5rem;">Union / Ward / Village</th>
+                                        <th style="padding: 0.75rem 0.5rem; text-align: right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="areasTableBody">
+                                    <tr>
+                                        <td colspan="3" class="loading-text" style="text-align: center; padding: 2rem;">Loading geographic catalog...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Create New Area Form -->
+                    <div class="create-category-box">
+                        <h3>Register New Area</h3>
+                        <form id="areaCreateForm" class="category-form" onsubmit="handleAreaFormSubmit(event)">
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="areaDivisionInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Division Name *</label>
+                                <input type="text" id="areaDivisionInput" required placeholder="e.g. Dhaka" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="areaDistrictInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">District Name *</label>
+                                <input type="text" id="areaDistrictInput" required placeholder="e.g. Dhaka" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="areaUpazilaInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Upazila / Thana *</label>
+                                <input type="text" id="areaUpazilaInput" required placeholder="e.g. Savar" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="areaUnionInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Union / Ward / Village</label>
+                                <input type="text" id="areaUnionInput" placeholder="e.g. Aminbazar Union" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                            </div>
+                            <button type="submit" class="btn-create-category" style="width: 100%;">Add Geographic Area</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -296,6 +317,36 @@
         window.AppConfig = {
             apiBaseUrl: "{{ request()->getBaseUrl() }}"
         };
+
+        function switchTab(tabId, btn) {
+            // Hide all sections
+            document.getElementById('analyticsSection').style.display = 'none';
+            document.getElementById('complaintsSection').style.display = 'none';
+            document.getElementById('categoriesSection').style.display = 'none';
+            document.getElementById('usersSection').style.display = 'none';
+            document.getElementById('areasSection').style.display = 'none';
+
+            // Show selected section
+            document.getElementById(tabId + 'Section').style.display = 'block';
+
+            // Update tab button styles
+            document.querySelectorAll('.tab-btn').forEach(button => {
+                button.classList.remove('active');
+                button.style.color = '#64748b';
+                button.style.borderBottomColor = 'transparent';
+            });
+
+            btn.classList.add('active');
+            btn.style.color = '#1e3c72';
+            btn.style.borderBottomColor = '#1e3c72';
+
+            // Correct Leaflet display size calculation when tab is loaded
+            if (tabId === 'analytics' && typeof adminMap !== 'undefined' && adminMap !== null) {
+                setTimeout(() => {
+                    adminMap.invalidateSize();
+                }, 150);
+            }
+        }
     </script>
     <script src="{{ asset('js/admin.js') }}"></script>
 </body>

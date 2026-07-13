@@ -16,22 +16,11 @@ class UserSeeder extends Seeder
         $users = [
             // Admins
             [
-                'full_name'         => 'Super Admin',
+                'full_name'         => 'Admin',
                 'email'             => 'admin@civicplatform.bd',
                 'password'          => Hash::make('Admin@1234'),
                 'role_id'           => 4,
                 'phone'             => '+8801700000001',
-                'is_active'         => true,
-                'email_verified_at' => now(),
-                'created_at'        => now(),
-                'updated_at'        => now(),
-            ],
-            [
-                'full_name'         => 'Karim Admin',
-                'email'             => 'karim.admin@civicplatform.bd',
-                'password'          => Hash::make('Admin@1234'),
-                'role_id'           => 4,
-                'phone'             => '+8801700000002',
                 'is_active'         => true,
                 'email_verified_at' => now(),
                 'created_at'        => now(),

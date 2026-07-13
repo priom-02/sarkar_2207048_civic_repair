@@ -23,6 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
     fetchWorkers().then(() => {
         fetchIssues();
     });
+    fetchUsers();
+    fetchAreas();
     setupEventListeners();
     setupIconPreview();
 });
@@ -98,62 +100,59 @@ function updateMetrics(stats) {
 // MAP PLOTTING
 // ============================================
 
-function plotHeatmapPins(locations) {
-    const container = document.getElementById('report-pins');
-    if (!container) return;
-    
-    if (locations.length === 0) {
-        container.innerHTML = '';
-        return;
-    }
-    
-    container.innerHTML = locations.map(loc => {
-        const { cx, cy } = mapCoordinates(loc.latitude, loc.longitude);
-        const radius = loc.upvotes >= 40 ? 7 : 5;
-        const fill = loc.upvotes >= 40 ? '#ff4444' : '#ff9900';
-        
-        return `
-            <circle cx="${cx}" cy="${cy}" r="${radius}" fill="${fill}" stroke="white" stroke-width="2" 
-                class="heatmap-pin" data-title="${escapeHtml(loc.title)}" data-upvotes="${loc.upvotes}" 
-                data-status="${escapeHtml(loc.status)}" style="cursor: pointer; transition: all 0.2s;" />
-        `;
-    }).join('');
-    
-    // Attach click listeners to heatmap pins
-    container.querySelectorAll('.heatmap-pin').forEach(pin => {
-        pin.addEventListener('mouseenter', function() {
-            this.setAttribute('r', parseInt(this.getAttribute('r')) + 2);
-        });
-        
-        pin.addEventListener('mouseleave', function() {
-            this.setAttribute('r', parseInt(this.getAttribute('r')) - 2);
-        });
-        
-        pin.addEventListener('click', function() {
-            const title = this.getAttribute('data-title');
-            const upvotes = this.getAttribute('data-upvotes');
-            const status = this.getAttribute('data-status');
-            showNotification(`📍 [${status}] ${title} (${upvotes} votes)`, 'info');
-        });
-    });
-}
+let adminMap = null;
+let adminMarkerGroup = null;
 
-function mapCoordinates(lat, lng) {
-    if (!lat || !lng) {
-        return { cx: Math.random() * 600 + 100, cy: Math.random() * 300 + 100 };
+function plotHeatmapPins(locations) {
+    const defaultLat = 23.8103;
+    const defaultLng = 90.4125;
+
+    if (!adminMap) {
+        adminMap = L.map('liveAdminMap').setView([defaultLat, defaultLng], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(adminMap);
+
+        adminMarkerGroup = L.layerGroup().addTo(adminMap);
+    } else {
+        adminMarkerGroup.clearLayers();
     }
-    
-    // Map bounding (Dhaka metropolitan coordinate systems)
-    const latMin = 23.7000;
-    const latMax = 23.8900;
-    const lngMin = 90.3500;
-    const lngMax = 90.4300;
-    
-    // SVG Heatmap size: 800 width, 500 height.
-    const cx = ((lng - lngMin) / (lngMax - lngMin)) * 700 + 50;
-    const cy = 500 - (((lat - latMin) / (latMax - latMin)) * 400 + 50);
-    
-    return { cx, cy };
+
+    if (locations.length === 0) return;
+
+    const bounds = [];
+
+    locations.forEach(loc => {
+        if (!loc.latitude || !loc.longitude) return;
+
+        const color = loc.upvotes >= 40 ? '#ef4444' : '#f59e0b';
+        
+        const circleMarker = L.circleMarker([loc.latitude, loc.longitude], {
+            radius: loc.upvotes >= 40 ? 12 : 8,
+            fillColor: color,
+            color: '#fff',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.8
+        }).bindPopup(`
+            <div style="font-family: inherit; font-size: 0.9rem; color: #1e293b;">
+                <strong>${escapeHtml(loc.title)}</strong>
+                <p style="margin: 0.25rem 0; color:#6b7280;">Status: ${escapeHtml(loc.status)}</p>
+                <span style="font-weight: 700; color:#3182ce;">👍 ${loc.upvotes} upvotes</span>
+            </div>
+        `);
+
+        adminMarkerGroup.addLayer(circleMarker);
+        bounds.push([loc.latitude, loc.longitude]);
+    });
+
+    setTimeout(() => {
+        adminMap.invalidateSize();
+        if (bounds.length > 0) {
+            adminMap.fitBounds(bounds, { padding: [40, 40] });
+        }
+    }, 200);
 }
 
 // ============================================
@@ -531,7 +530,7 @@ async function handleAssignmentSubmit(e) {
 
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> Dispatching...';
+    btn.innerHTML = 'Dispatching...';
 
     try {
         const response = await fetch(`${apiBase}/admin/api/assignments`, {
@@ -560,13 +559,242 @@ async function handleAssignmentSubmit(e) {
         } else {
             showNotification(data.message || 'Error assigning worker', 'error');
             btn.disabled = false;
-            btn.innerHTML = '<span>🚀</span> Dispatch Worker';
+            btn.innerHTML = 'Dispatch Worker';
         }
     } catch (error) {
         console.error('Assignment dispatch error:', error);
         showNotification('Could not assign task. Please try again.', 'error');
         btn.disabled = false;
-        btn.innerHTML = '<span>🚀</span> Dispatch Worker';
+        btn.innerHTML = 'Dispatch Worker';
     }
 }
+
+// ============================================
+// USER MANAGEMENT CONTROL
+// ============================================
+
+let currentUsers = [];
+
+async function fetchUsers() {
+    try {
+        const response = await fetch(`${apiBase}/admin/api/users`);
+        if (!response.ok) throw new Error('Failed to fetch users');
+        currentUsers = await response.json();
+        renderUsersTable();
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        const tbody = document.getElementById('usersTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color: #ef4444;">Error loading platform users.</td></tr>`;
+        }
+    }
+}
+
+function renderUsersTable() {
+    const tbody = document.getElementById('usersTableBody');
+    if (!tbody) return;
+
+    if (currentUsers.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="loading-text">No registered users found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = currentUsers.map(user => {
+        const statusBadge = user.is_active
+            ? `<span class="status-badge" style="background-color: #d1fae5; color: #065f46; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-block;">Active</span>`
+            : `<span class="status-badge" style="background-color: #fee2e2; color: #991b1b; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-block;">Deactivated</span>`;
+
+        const actionBtn = user.is_active
+            ? `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #ef4444; border-color: #ef4444; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Deactivate</button>`
+            : `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #10b981; border-color: #10b981; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Activate</button>`;
+
+        return `
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">${escapeHtml(user.full_name)}</div>
+                    <small style="color: #64748b; font-size: 0.75rem;">ID: #${user.id}</small>
+                </td>
+                <td>${escapeHtml(user.email)}</td>
+                <td>${escapeHtml(user.phone)}</td>
+                <td style="font-weight: 500; color: #475569;">${escapeHtml(user.role_name)}</td>
+                <td>${statusBadge}</td>
+                <td>${actionBtn}</td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function toggleUserStatus(userId, button) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Updating...';
+
+    try {
+        const response = await fetch(`${apiBase}/admin/api/users/${userId}/toggle-active`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to toggle user status');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message || '✓ User status updated!', 'success');
+            fetchUsers(); // Refresh the users table
+        } else {
+            showNotification(data.message || 'Error updating user status', 'error');
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    } catch (error) {
+        console.error('Toggle status error:', error);
+        showNotification('Could not update user status. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+// ============================================
+// GEOGRAPHIC AREAS MANAGEMENT
+// ============================================
+
+let currentAreas = [];
+
+async function fetchAreas() {
+    try {
+        const response = await fetch(`${apiBase}/admin/api/areas`);
+        if (!response.ok) throw new Error('Failed to fetch areas');
+        const data = await response.json();
+        currentAreas = data.areas;
+        renderAreasTable();
+    } catch (error) {
+        console.error('Error fetching areas:', error);
+        const tbody = document.getElementById('areasTableBody');
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="3" class="loading-text" style="color: #ef4444; text-align: center; padding: 2rem;">Error loading geographic catalog.</td></tr>`;
+        }
+    }
+}
+
+function renderAreasTable() {
+    const tbody = document.getElementById('areasTableBody');
+    if (!tbody) return;
+
+    if (currentAreas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="loading-text" style="text-align: center; padding: 2rem;">No registered geographic areas found.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = currentAreas.map(area => {
+        return `
+            <tr style="border-bottom: 1px solid #edf2f7; font-size: 0.95rem;">
+                <td style="padding: 1rem 0.5rem;">
+                    <div style="font-weight: 700; color: #1e293b;">${escapeHtml(area.division)}</div>
+                    <small style="color: #64748b; font-size: 0.8rem;">${escapeHtml(area.district)} &gt; ${escapeHtml(area.upazila)}</small>
+                </td>
+                <td style="padding: 1rem 0.5rem; font-weight: 600; color: #475569;">
+                    ${escapeHtml(area.union_parishad || 'N/A')}
+                </td>
+                <td style="padding: 1rem 0.5rem; text-align: right;">
+                    <button onclick="deleteGeographicArea(${area.id}, this)" style="background-color: #ef4444; border: none; font-size: 0.8rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; transition: all 0.2s;">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+async function handleAreaFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    const division = document.getElementById('areaDivisionInput').value.trim();
+    const district = document.getElementById('areaDistrictInput').value.trim();
+    const upazila = document.getElementById('areaUpazilaInput').value.trim();
+    const union = document.getElementById('areaUnionInput').value.trim();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    if (!division || !district || !upazila) {
+        showNotification('Please fill in all required fields', 'error');
+        return;
+    }
+
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.textContent = 'Adding...';
+
+    try {
+        const response = await fetch(`${apiBase}/admin/api/areas`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                division: division,
+                district: district,
+                upazila: upazila,
+                union_parishad: union
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to create area');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('✓ Area registered successfully!', 'success');
+            form.reset();
+            fetchAreas(); // Refresh list
+        } else {
+            showNotification(data.message || 'Error creating area', 'error');
+        }
+    } catch (error) {
+        console.error('Create area error:', error);
+        showNotification('Could not save area. Please try again.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Add Geographic Area';
+    }
+}
+
+async function deleteGeographicArea(areaId, button) {
+    if (!confirm('Are you sure you want to delete this geographic area?')) return;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Deleting...';
+
+    try {
+        const response = await fetch(`${apiBase}/admin/api/areas/${areaId}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken
+            }
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+            showNotification('✓ Area deleted successfully!', 'success');
+            fetchAreas();
+        } else {
+            showNotification(data.message || 'Error deleting area', 'error');
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    } catch (error) {
+        console.error('Delete area error:', error);
+        showNotification('Could not delete area. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
+window.handleAreaFormSubmit = handleAreaFormSubmit;
+window.deleteGeographicArea = deleteGeographicArea;
 

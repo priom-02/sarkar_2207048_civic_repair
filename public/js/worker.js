@@ -55,6 +55,23 @@ function updateStats(stats) {
         statNumbers[1].textContent = stats.high;
         statNumbers[2].textContent = stats.completed;
     }
+
+    const summaryCompleted = document.getElementById('summaryCompleted');
+    if (summaryCompleted && stats.completed_text) {
+        summaryCompleted.textContent = stats.completed_text;
+    }
+    const summaryAvgTime = document.getElementById('summaryAvgTime');
+    if (summaryAvgTime && stats.avg_time) {
+        summaryAvgTime.textContent = stats.avg_time;
+    }
+    const summaryNextPriority = document.getElementById('summaryNextPriority');
+    if (summaryNextPriority && stats.next_priority) {
+        summaryNextPriority.textContent = stats.next_priority;
+    }
+    const summaryRating = document.getElementById('summaryRating');
+    if (summaryRating && stats.rating) {
+        summaryRating.textContent = stats.rating;
+    }
 }
 
 // ============================================
@@ -82,66 +99,55 @@ function updateTime() {
     timeElement.textContent = `${hours}:${minutes} ${ampm}`;
 }
 
-// ============================================
-// MAP PLOTTING
-// ============================================
+let workerLiveMap = null;
+let markerGroup = null;
 
 function plotMapPins(assignments) {
-    const pinsContainer = document.getElementById('pins');
-    if (!pinsContainer) return;
-    
-    pinsContainer.innerHTML = assignments.map((order, index) => {
-        if (order.status === 'completed') return ''; // Don't plot resolved items
-        
-        const { cx, cy } = mapCoordinates(order.latitude, order.longitude);
-        const pinColor = order.priority === 'High' ? '#ff4444' : '#ffaa00';
-        
-        return `
-            <g class="map-pin-group" data-order="${order.id}" style="cursor: pointer;">
-                <circle cx="${cx}" cy="${cy}" r="8" fill="${pinColor}" opacity="0.8" class="incident-pin" />
-                <circle cx="${cx}" cy="${cy}" r="12" fill="${pinColor}" opacity="0.3" class="pulse" />
-                <text x="${cx - 4}" y="${cy + 4}" font-size="11" fill="white" font-weight="bold">${index + 1}</text>
-            </g>
-        `;
-    }).join('');
-    
-    // Attach events to map pins
-    pinsContainer.querySelectorAll('.map-pin-group').forEach(group => {
-        const orderId = group.getAttribute('data-order');
-        const order = currentAssignments.find(a => a.id == orderId);
-        
-        group.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openStatusModal(order.id, order.title, order.status);
-        });
-        
-        group.addEventListener('mouseenter', () => {
-            highlightCard(orderId);
-        });
-        
-        group.addEventListener('mouseleave', () => {
-            removeCardHighlight();
-        });
-    });
-}
+    const defaultLat = 23.8103;
+    const defaultLng = 90.4125;
 
-function mapCoordinates(lat, lng) {
-    if (!lat || !lng) {
-        // Fallback standard points inside grid if coordinates not provided
-        return { cx: Math.random() * 400 + 100, cy: Math.random() * 250 + 75 };
+    const mappedOrders = assignments.filter(a => a.latitude && a.longitude);
+
+    if (!workerLiveMap) {
+        workerLiveMap = L.map('liveWorkerMap').setView([defaultLat, defaultLng], 12);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(workerLiveMap);
+
+        markerGroup = L.layerGroup().addTo(workerLiveMap);
+    } else {
+        markerGroup.clearLayers();
     }
-    
-    // Coordinate bounding for Dhaka metropolitan areas (Uttara to Old Dhaka, Mirpur to Motijheel)
-    const latMin = 23.7000;
-    const latMax = 23.8900;
-    const lngMin = 90.3500;
-    const lngMax = 90.4300;
-    
-    // Invert Y axis because in SVG 0 is top
-    const cx = ((lng - lngMin) / (lngMax - lngMin)) * 500 + 50;
-    const cy = 400 - (((lat - latMin) / (latMax - latMin)) * 300 + 50);
-    
-    return { cx, cy };
+
+    if (mappedOrders.length === 0) return;
+
+    const bounds = [];
+
+    mappedOrders.forEach(order => {
+        const marker = L.marker([order.latitude, order.longitude])
+            .bindPopup(`
+                <div style="font-family: inherit; font-size: 0.9rem; padding: 0.25rem; color: #1f2937;">
+                    <strong style="display:block; margin-bottom: 0.25rem;">${escapeHtml(order.title)}</strong>
+                    <span style="font-size: 0.75rem; color:#6b7280; display:block; margin-bottom: 0.5rem;">📍 ${escapeHtml(order.area_name)}</span>
+                    <span style="font-size: 0.75rem; font-weight:700; color:${order.priority === 'High' ? '#ef4444' : '#f59e0b'}; display:block; margin-bottom: 0.5rem;">Priority: ${escapeHtml(order.priority)}</span>
+                    <button onclick="openStatusModal(${order.id}, '${escapeHtml(order.title).replace(/'/g, "\\'")}', '${order.status}')" 
+                            style="background:#3182ce; color:white; border:none; border-radius:6px; padding:0.4rem 0.8rem; font-size:0.8rem; font-weight:600; cursor:pointer; width:100%;">
+                        Update Status
+                    </button>
+                </div>
+            `);
+        
+        markerGroup.addLayer(marker);
+        bounds.push([order.latitude, order.longitude]);
+    });
+
+    setTimeout(() => {
+        workerLiveMap.invalidateSize();
+        if (bounds.length > 0) {
+            workerLiveMap.fitBounds(bounds, { padding: [30, 30] });
+        }
+    }, 200);
 }
 
 // ============================================

@@ -6,6 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Civic Reporting - Empower Your Neighborhood</title>
     <link rel="stylesheet" href="{{ asset('css/citizen.css') }}">
+    <!-- Leaflet Mapping Library CDN -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -36,9 +39,10 @@
                 <li><a href="#home" class="nav-link">Home</a></li>
                 <li><a href="#issues-feed" class="nav-link">Feed</a></li>
                 <li><a href="#leaderboard" class="nav-link">Leaderboard</a></li>
+                <li><a href="#my-reports" class="nav-link">My Reports</a></li>
                 <li><a href="#" class="nav-link btn-report">Report Issue</a></li>
                 <li class="navbar-user-profile">
-                    <span class="navbar-user-name">👤 {{ auth()->user()->full_name }}</span>
+                    <span class="navbar-user-name">{{ auth()->user()->full_name }}</span>
                     <form action="{{ route('logout') }}" method="POST" style="display: inline;">
                         @csrf
                         <button type="submit" class="btn-logout">Logout</button>
@@ -55,10 +59,10 @@
             <p class="hero-subtitle">Report civic issues, track progress, and build a better community</p>
             <div class="hero-actions">
                 <button class="btn btn-primary btn-report-trigger">
-                    📍 Report an Issue
+                    Report an Issue
                 </button>
                 <button class="btn btn-secondary" onclick="scrollToSection('issues-feed')">
-                    👀 View Recent Reports
+                    View Recent Reports
                 </button>
             </div>
         </div>
@@ -72,16 +76,16 @@
                 <div class="monitor-body">
                     <div class="monitor-stat-row">
                         <div class="monitor-stat-item">
-                            <span class="stat-icon">📈</span>
+                            <span class="stat-icon" style="font-size: 1.5rem; display: inline-block; vertical-align: middle;">📈</span>
                             <div class="stat-details">
-                                <div class="stat-val">86.4%</div>
+                                <div class="stat-val">{{ $resolutionRate }}%</div>
                                 <div class="stat-lbl">Resolution Rate</div>
                             </div>
                         </div>
                         <div class="monitor-stat-item">
-                            <span class="stat-icon">⚡</span>
+                            <span class="stat-icon" style="font-size: 1.5rem; display: inline-block; vertical-align: middle;">⚡</span>
                             <div class="stat-details">
-                                <div class="stat-val">&lt; 24h</div>
+                                <div class="stat-val">{{ $avgResponseTime }}</div>
                                 <div class="stat-lbl">Avg Response Time</div>
                             </div>
                         </div>
@@ -89,18 +93,16 @@
                     <div class="monitor-activity">
                         <div class="activity-title">Recent Activity Log</div>
                         <div class="activity-list">
-                            <div class="activity-item">
-                                <span class="activity-time">Just now</span>
-                                <span class="activity-text">🚨 Street Light issue reported in Dhanmondi</span>
-                            </div>
-                            <div class="activity-item">
-                                <span class="activity-time">10m ago</span>
-                                <span class="activity-text">✅ Pothole repair completed in Mirpur</span>
-                            </div>
-                            <div class="activity-item">
-                                <span class="activity-time">45m ago</span>
-                                <span class="activity-text">👷 Worker assigned to water leakage in Gulshan</span>
-                            </div>
+                            @forelse($recentActivities as $act)
+                                <div class="activity-item">
+                                    <span class="activity-time">{{ $act['time'] }}</span>
+                                    <span class="activity-text">{{ $act['text'] }}</span>
+                                </div>
+                            @empty
+                                <div class="activity-item">
+                                    <span class="activity-text">No recent platform activities recorded.</span>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
@@ -113,24 +115,12 @@
         <div class="container">
             <div class="search-box">
                 <input type="text" id="searchInput" placeholder="Search issues..." class="search-input">
-                <button class="search-btn">🔍</button>
+                <button class="search-btn">Search</button>
             </div>
             <div class="category-filters">
                 <button class="filter-chip active" data-category-id="all">All</button>
                 @foreach ($categories as $cat)
-                    @php
-                        $emoji = '📋';
-                        $lowerName = strtolower($cat->category_name);
-                        if (str_contains($lowerName, 'road') || str_contains($lowerName, 'pothole')) $emoji = '🛣️';
-                        elseif (str_contains($lowerName, 'garbage') || str_contains($lowerName, 'waste')) $emoji = '♻️';
-                        elseif (str_contains($lowerName, 'light') || str_contains($lowerName, 'safety')) $emoji = '🚨';
-                        elseif (str_contains($lowerName, 'water')) $emoji = '💧';
-                        elseif (str_contains($lowerName, 'sewer') || str_contains($lowerName, 'drain')) $emoji = '🚽';
-                        elseif (str_contains($lowerName, 'power') || str_contains($lowerName, 'electric')) $emoji = '⚡';
-                        elseif (str_contains($lowerName, 'traffic')) $emoji = '🚦';
-                        elseif (str_contains($lowerName, 'tree') || str_contains($lowerName, 'vegetation')) $emoji = '🌳';
-                    @endphp
-                    <button class="filter-chip" data-category-id="{{ $cat->id }}">{{ $emoji }} {{ $cat->category_name }}</button>
+                    <button class="filter-chip" data-category-id="{{ $cat->id }}">{{ $cat->category_name }}</button>
                 @endforeach
             </div>
         </div>
@@ -176,6 +166,64 @@
         </div>
     </section>
 
+    <!-- My Space (Profile & Reports) Section -->
+    <section class="leaderboard" id="my-reports" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding-top: 4rem; padding-bottom: 4rem;">
+        <div class="container">
+            <h2 class="section-title">My Space</h2>
+            
+            <div class="myspace-grid" style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 2.5rem; margin-top: 2rem;">
+                <!-- Profile details -->
+                <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; display: flex; flex-direction: column; gap: 1.25rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f2d59; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Profile Details</h3>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Full Name</span>
+                        <span style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{ auth()->user()->full_name }}</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Email Address</span>
+                        <span style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{ auth()->user()->email }}</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Phone Number</span>
+                        <span style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{ auth()->user()->phone ?? 'N/A' }}</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Role Type</span>
+                        <span style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">Citizen Member</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Account Status</span>
+                        <span style="background: #c6f6d5; color: #22543d; font-size: 0.85rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 9999px; display: inline-block; margin-top: 0.25rem;">Active Account</span>
+                    </div>
+                </div>
+
+                <!-- My Reports Table -->
+                <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; display: flex; flex-direction: column; gap: 1.5rem;">
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f2d59; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Reported Issues</h3>
+                    
+                    <div style="overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid #edf2f7; color: #718096; font-weight: 700; font-size: 0.85rem; text-transform: uppercase;">
+                                    <th style="padding: 0.75rem 0.5rem;">Issue Title</th>
+                                    <th style="padding: 0.75rem 0.5rem;">Category</th>
+                                    <th style="padding: 0.75rem 0.5rem;">Current Status</th>
+                                    <th style="padding: 0.75rem 0.5rem;">Upvotes</th>
+                                    <th style="padding: 0.75rem 0.5rem; text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myReportsTableBody">
+                                <tr>
+                                    <td colspan="5" style="text-align: center; color: #a0aec0; padding: 3rem 0; font-style: italic;">Loading your reports...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Report Issue Modal (Hidden by default) -->
     <div class="modal" id="reportModal">
         <div class="modal-content">
@@ -193,26 +241,62 @@
                     <textarea id="issueDescription" placeholder="Provide more details..." rows="4" required></textarea>
                 </div>
 
-                <div class="form-row">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="issueCategory" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Category *</label>
+                    <select id="issueCategory" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;">
+                        <option value="">Select a category</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}">{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
                     <div class="form-group">
-                        <label for="issueCategory">Category</label>
-                        <select id="issueCategory" required>
-                            <option value="">Select a category</option>
-                            @foreach ($categories as $cat)
-                                <option value="{{ $cat->id }}">{{ $cat->category_name }}</option>
-                            @endforeach
+                        <label for="issueDivision" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Division *</label>
+                        <select id="issueDivision" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;">
+                            <option value="">Select Division</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="issueArea">Area</label>
-                        <select id="issueArea" required>
-                            <option value="">Select an area</option>
-                            @foreach ($areas as $area)
-                                <option value="{{ $area->id }}">{{ $area->area_name }}</option>
-                            @endforeach
+                        <label for="issueDistrict" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">District *</label>
+                        <select id="issueDistrict" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
+                            <option value="">Select District</option>
                         </select>
                     </div>
+                </div>
+
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
+                    <div class="form-group">
+                        <label for="issueUpazila" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Upazila/Thana *</label>
+                        <select id="issueUpazila" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
+                            <option value="">Select Upazila/Thana</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="issueUnion" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Union/Ward/Village *</label>
+                        <select id="issueUnion" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
+                            <option value="">Select Union/Ward</option>
+                        </select>
+                    </div>
+                </div>
+
+                <input type="hidden" id="issueArea" name="area_id">
+
+                <input type="hidden" id="issueLat" name="latitude">
+                <input type="hidden" id="issueLng" name="longitude">
+
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="font-weight: 600; color: #1e293b;">Select Location on Map *</label>
+                        <button type="button" onclick="locateUser()" style="background: #3182ce; color: white; border: none; border-radius: 6px; padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.25rem;">
+                            <span>📍</span> Locate Me
+                        </button>
+                    </div>
+                    <div id="locationSelectorMap" style="height: 240px; border-radius: 12px; border: 1px solid #cbd5e1; margin-bottom: 0.5rem; z-index: 1;"></div>
+                    <small style="color: #64748b; font-size: 0.8rem; display: block; margin-bottom: 1rem;">Click on the map or drag the pin to mark the exact coordinates of the issue.</small>
                 </div>
 
                 <div class="form-group">
@@ -292,6 +376,7 @@
         window.AppConfig = {
             apiBaseUrl: "{{ request()->getBaseUrl() }}"
         };
+        window.allAreas = @json($areas);
     </script>
     <script src="{{ asset('js/citizen.js') }}"></script>
 </body>

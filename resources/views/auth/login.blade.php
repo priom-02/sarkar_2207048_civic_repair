@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Civic Reporting Platform</title>
+    <title>Sign In - Civic Reporting Platform</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="auth-container">
@@ -30,18 +31,25 @@
                 </div>
                 <h1 class="logo-text-auth">civic <span style="color: #06b6d4;">report</span></h1>
                 <p>Empowering Communities Together</p>
+                
                 <div class="brand-features">
-                    <div class="feature">✓ Report Civic Issues</div>
-                    <div class="feature">✓ Track Progress</div>
-                    <div class="feature">✓ Build Better Communities</div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Report Civic Issues Easily
+                    </div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Track Resolutions Live
+                    </div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Mobilize Community Action
+                    </div>
                 </div>
             </div>
 
-            <!-- Right Side - Login Form -->
+            <!-- Right Side - Form -->
             <div class="auth-form-container">
                 <div class="form-card">
                     <h2>Sign In</h2>
-                    <p class="form-subtitle">Access your civic reporting account</p>
+                    <p class="form-subtitle">Welcome back! Please enter your details.</p>
 
                     @if ($errors->any())
                         <div class="alert alert-error">
@@ -59,7 +67,7 @@
                         <div class="alert alert-success">{{ session('status') }}</div>
                     @endif
 
-                    <form action="{{ route('login') }}" method="POST" class="login-form">
+                    <form action="{{ route('login') }}" method="POST">
                         @csrf
 
                         <div class="form-group">
@@ -73,9 +81,6 @@
                                 required
                                 autofocus
                             >
-                            @error('email')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
@@ -87,24 +92,21 @@
                                 placeholder="••••••••"
                                 required
                             >
-                            @error('password')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
-                        <div class="form-group remember-forgot">
+                        <div class="remember-forgot">
                             <label class="checkbox-group">
                                 <input type="checkbox" name="remember" id="remember">
                                 <span>Remember me</span>
                             </label>
                             @if (Route::has('password.request'))
-                                <a class="forgot-password-link" href="{{ route('password.request') }}" style="color: #06b6d4; text-decoration: none; font-size: 0.875rem;">
+                                <a class="forgot-password-link" href="{{ route('password.request') }}" style="color: #06b6d4; text-decoration: none;">
                                     Forgot password?
                                 </a>
                             @endif
                         </div>
 
-                        <button type="submit" class="btn btn-login">Sign In</button>
+                        <button type="submit" class="btn-login">Sign In</button>
                     </form>
 
                     <div class="divider">Or</div>
@@ -113,35 +115,26 @@
                         New to CivicReport? 
                         <a href="{{ route('register') }}" class="signup-link">Create an account</a>
                     </p>
-                </div>
 
-                <!-- Role Info -->
-                <div class="role-info">
-                    <h3>Account Types</h3>
-                    <div class="role-card">
-                        <span class="role-icon">👤</span>
-                        <div>
-                            <strong>Citizen</strong>
-                            <p>Report issues and support solutions</p>
-                        </div>
-                    </div>
-                    <div class="role-card">
-                        <span class="role-icon">👷</span>
-                        <div>
-                            <strong>Worker</strong>
-                            <p>Work on assigned issues</p>
-                        </div>
-                    </div>
-                    <div class="role-card">
-                        <span class="role-icon">👨‍💼</span>
-                        <div>
-                            <strong>Admin</strong>
-                            <p>Manage platform & assignments</p>
+                    <!-- Autofill Helper Box -->
+                    <div class="autofill-helper-box">
+                        <div class="autofill-helper-title">Demo Accounts Autofill</div>
+                        <div class="autofill-buttons">
+                            <button type="button" class="autofill-btn" onclick="autofill('admin@civicplatform.bd', 'Admin@1234')">Admin</button>
+                            <button type="button" class="autofill-btn" onclick="autofill('fatema@gmail.com', 'Password@123')">Citizen</button>
+                            <button type="button" class="autofill-btn" onclick="autofill('rahim.worker@civicplatform.bd', 'Worker@1234')">Worker</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <script>
+        function autofill(email, password) {
+            document.getElementById('email').value = email;
+            document.getElementById('password').value = password;
+        }
+    </script>
 </body>
 </html>

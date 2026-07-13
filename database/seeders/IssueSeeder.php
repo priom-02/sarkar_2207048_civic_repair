@@ -17,11 +17,24 @@ class IssueSeeder extends Seeder
         // Statuses:   1=Pending, 2=Acknowledged, 3=In Progress, 4=On Hold, 5=Resolved, 6=Closed, 7=Rejected
         // Areas:      1=Dhanmondi, 2=Mirpur, 3=Gulshan, 4=Banani, 5=Uttara, 6=Motijheel, 7=Old Dhaka
 
+        $u = [
+            1 => DB::table('users')->where('email', 'admin@civicplatform.bd')->first()->id,
+            2 => DB::table('users')->where('email', 'admin@civicplatform.bd')->first()->id,
+            3 => DB::table('users')->where('email', 'razia.mod@civicplatform.bd')->first()->id,
+            4 => DB::table('users')->where('email', 'rahim.worker@civicplatform.bd')->first()->id,
+            5 => DB::table('users')->where('email', 'jamal.worker@civicplatform.bd')->first()->id,
+            6 => DB::table('users')->where('email', 'fatema@gmail.com')->first()->id,
+            7 => DB::table('users')->where('email', 'arif.hossain@gmail.com')->first()->id,
+            8 => DB::table('users')->where('email', 'nasrin.akter@yahoo.com')->first()->id,
+            9 => DB::table('users')->where('email', 'tariqul@hotmail.com')->first()->id,
+            10 => DB::table('users')->where('email', 'sadia.rahman@gmail.com')->first()->id,
+        ];
+
         $issues = [
             [
                 'title'        => 'Large pothole on Road 27 causing accidents',
                 'description'  => 'There is a very large pothole near house #12, Road 27, Dhanmondi. Several motorbikes have had accidents. Urgent repair needed.',
-                'reported_by'  => 6,
+                'reported_by'  => $u[6],
                 'category_id'  => 1,
                 'area_id'      => 1,
                 'status_id'    => 3,
@@ -34,7 +47,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Overflowing garbage bins near Mirpur-10 roundabout',
                 'description'  => 'The garbage bins near Mirpur-10 roundabout have not been collected for over a week. The smell is unbearable and attracting stray animals.',
-                'reported_by'  => 7,
+                'reported_by'  => $u[7],
                 'category_id'  => 2,
                 'area_id'      => 2,
                 'status_id'    => 2,
@@ -47,7 +60,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Burst water main flooding Gulshan Avenue',
                 'description'  => 'A water main pipe has burst on Gulshan Avenue near Gulshan 1 circle. Water is flooding the road and disrupting traffic.',
-                'reported_by'  => 8,
+                'reported_by'  => $u[8],
                 'category_id'  => 3,
                 'area_id'      => 3,
                 'status_id'    => 3,
@@ -60,7 +73,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Sewage overflow on Banani Road 11',
                 'description'  => 'Sewage is overflowing from the drain on Banani Road 11 near the school. Children are exposed to health hazards.',
-                'reported_by'  => 9,
+                'reported_by'  => $u[9],
                 'category_id'  => 4,
                 'area_id'      => 4,
                 'status_id'    => 1,
@@ -73,7 +86,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Street lights not working in Uttara Sector 7',
                 'description'  => 'Almost all street lights in Sector 7, Uttara have been out for 3 nights. The area is very dark and unsafe, especially for women.',
-                'reported_by'  => 10,
+                'reported_by'  => $u[10],
                 'category_id'  => 5,
                 'area_id'      => 5,
                 'status_id'    => 5,
@@ -86,7 +99,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Transformer fire risk in Motijheel commercial area',
                 'description'  => 'An old transformer in Motijheel is sparking and leaking oil. Very high fire risk. DESCO has not responded to calls.',
-                'reported_by'  => 6,
+                'reported_by'  => $u[6],
                 'category_id'  => 6,
                 'area_id'      => 6,
                 'status_id'    => 2,
@@ -99,7 +112,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Traffic signal broken at Old Dhaka Chowk Bazaar',
                 'description'  => 'The traffic signal at Chowk Bazaar intersection has been broken for 5 days causing massive traffic jams and near-miss accidents.',
-                'reported_by'  => 7,
+                'reported_by'  => $u[7],
                 'category_id'  => 7,
                 'area_id'      => 7,
                 'status_id'    => 1,
@@ -112,7 +125,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Fallen tree blocking main road in Dhanmondi',
                 'description'  => 'A large tree has fallen after last night\'s storm and is blocking Dhanmondi Road 15. Emergency clearance required.',
-                'reported_by'  => 8,
+                'reported_by'  => $u[8],
                 'category_id'  => 8,
                 'area_id'      => 1,
                 'status_id'    => 6,
@@ -125,7 +138,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Broken footpath causing injuries near Mirpur school',
                 'description'  => 'The footpath in front of Mirpur Government Primary School is severely broken with exposed rebar. Students have already been injured.',
-                'reported_by'  => 9,
+                'reported_by'  => $u[9],
                 'category_id'  => 11,
                 'area_id'      => 2,
                 'status_id'    => 4,
@@ -138,7 +151,7 @@ class IssueSeeder extends Seeder
             [
                 'title'        => 'Illegal garbage dumping near Gulshan Lake',
                 'description'  => 'Construction waste is being illegally dumped near Gulshan Lake at night. This is destroying the lake environment.',
-                'reported_by'  => 10,
+                'reported_by'  => $u[10],
                 'category_id'  => 2,
                 'area_id'      => 3,
                 'status_id'    => 7,

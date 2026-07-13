@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Civic Reporting Platform</title>
     <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="auth-container">
+    <div class="auth-container" style="max-width: 1100px;">
         <div class="auth-wrapper">
             <!-- Left Side - Branding -->
             <div class="auth-branding">
@@ -30,18 +31,25 @@
                 </div>
                 <h1 class="logo-text-auth">civic <span style="color: #06b6d4;">report</span></h1>
                 <p>Empowering Communities Together</p>
+                
                 <div class="brand-features">
-                    <div class="feature">✓ Report Civic Issues</div>
-                    <div class="feature">✓ Track Progress</div>
-                    <div class="feature">✓ Build Better Communities</div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Sign Up as a Citizen or Worker
+                    </div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Pinpoint Issues with Area Maps
+                    </div>
+                    <div class="feature">
+                        <span style="color: #22d3ee; font-weight: bold;">✓</span> Help Improve Municipal Services
+                    </div>
                 </div>
             </div>
 
-            <!-- Right Side - Register Form -->
+            <!-- Right Side - Registration Form -->
             <div class="auth-form-container">
                 <div class="form-card">
                     <h2>Create Account</h2>
-                    <p class="form-subtitle">Join our civic reporting community</p>
+                    <p class="form-subtitle">Join our civic reporting community today</p>
 
                     @if ($errors->any())
                         <div class="alert alert-error">
@@ -51,7 +59,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('register') }}" method="POST" class="register-form">
+                    <form action="{{ route('register') }}" method="POST">
                         @csrf
 
                         <div class="form-group">
@@ -65,9 +73,6 @@
                                 required
                                 autofocus
                             >
-                            @error('full_name')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
@@ -80,9 +85,6 @@
                                 value="{{ old('email') }}"
                                 required
                             >
-                            @error('email')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
@@ -91,25 +93,19 @@
                                 type="tel" 
                                 id="phone" 
                                 name="phone" 
-                                placeholder="+1 (555) 000-0000"
+                                placeholder="+8801XXXXXXXXX"
                                 value="{{ old('phone') }}"
                             >
-                            @error('phone')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
                             <label for="role_id">Account Type</label>
                             <select id="role_id" name="role_id" required>
                                 <option value="">Select account type</option>
-                                <option value="1">Citizen - Report and support issues</option>
-                                <option value="2">Worker - Work on civic projects</option>
+                                <option value="1" {{ old('role_id') == 1 ? 'selected' : '' }}>Citizen - Report and vote on issues</option>
+                                <option value="2" {{ old('role_id') == 2 ? 'selected' : '' }}>Worker - Complete public works assignments</option>
                             </select>
-                            @error('role_id')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
-                            <small>Note: Admin accounts are created by administrators only</small>
+                            <small>Note: Admin accounts can only be created by existing administrators.</small>
                         </div>
 
                         <div class="form-group">
@@ -121,9 +117,6 @@
                                 placeholder="Minimum 8 characters"
                                 required
                             >
-                            @error('password')
-                                <span class="error-text">{{ $message }}</span>
-                            @enderror
                         </div>
 
                         <div class="form-group">
@@ -142,10 +135,10 @@
                             <span>I agree to the <a href="#">Terms & Conditions</a></span>
                         </label>
 
-                        <button type="submit" class="btn btn-login">Create Account</button>
+                        <button type="submit" class="btn-login">Create Account</button>
                     </form>
 
-                    <p class="signin-prompt">
+                    <p class="signin-prompt" style="margin-top: 1.5rem;">
                         Already have an account? 
                         <a href="{{ route('login') }}" class="signin-link">Sign in here</a>
                     </p>

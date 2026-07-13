@@ -49,13 +49,13 @@ class WorkerController extends Controller
 
                 // Priority calculation based on upvote count
                 $priority = 'Low';
-                $priorityBadge = '🟢 Low Priority';
+                $priorityBadge = 'Low Priority';
                 if ($issue->upvote_count >= 40) {
                     $priority = 'High';
-                    $priorityBadge = '🔴 High Priority';
+                    $priorityBadge = 'High Priority';
                 } elseif ($issue->upvote_count >= 20) {
                     $priority = 'Medium';
-                    $priorityBadge = '🟡 Medium';
+                    $priorityBadge = 'Medium Priority';
                 }
 
                 // Map database status back to visual codes: assigned, working, completed
@@ -113,12 +113,54 @@ class WorkerController extends Controller
         $highPriorityCount = $assignments->where('priority', 'High')->count();
         $completedCount = $assignments->where('status', 'completed')->count();
 
+        // Calculate average completion time
+        $completedAssignments = IssueAssignment::where('worker_id', $workerId)
+            ->whereHas('issue', function ($q) {
+                $q->whereIn('status_id', [5, 6]);
+            })
+            ->with(['issue', 'issue.statusHistory'])
+            ->get();
+
+        $durations = [];
+        foreach ($completedAssignments as $cAssignment) {
+            $resolvedHistory = $cAssignment->issue->statusHistory
+                ->whereIn('new_status_id', [5, 6])
+                ->sortBy('created_at')
+                ->first();
+            if ($resolvedHistory) {
+                $durations[] = $resolvedHistory->created_at->diffInMinutes($cAssignment->created_at);
+            }
+        }
+
+        if (count($durations) > 0) {
+            $avgMinutes = array_sum($durations) / count($durations);
+            if ($avgMinutes >= 60) {
+                $avgTimeText = round($avgMinutes / 60, 1) . ' hrs';
+            } else {
+                $avgTimeText = round($avgMinutes) . ' mins';
+            }
+            $rating = max(3.5, min(5.0, round(5.0 - (($avgMinutes / 60) / 48) * 0.5, 1)));
+        } else {
+            $avgTimeText = 'N/A';
+            $rating = 5.0;
+        }
+
+        // Get next highest priority task
+        $nextPriorityObj = $assignments->where('status', '!==', 'completed')->sortByDesc(function($a) {
+            return $a['priority'] === 'High' ? 2 : ($a['priority'] === 'Medium' ? 1 : 0);
+        })->first();
+        $nextPriorityTitle = $nextPriorityObj ? $nextPriorityObj['title'] : 'None (All Clear)';
+
         return response()->json([
             'assignments' => $assignments->values(),
             'stats' => [
                 'total' => $totalCount,
                 'high' => $highPriorityCount,
                 'completed' => $completedCount,
+                'completed_text' => "{$completedCount} of {$totalCount}",
+                'avg_time' => $avgTimeText,
+                'rating' => "{$rating} / 5.0",
+                'next_priority' => $nextPriorityTitle,
             ]
         ]);
     }

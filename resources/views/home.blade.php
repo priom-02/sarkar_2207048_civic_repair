@@ -4,27 +4,84 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CivicReport - Empower Your Neighborhood</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* ==========================================================================
+           PREMIUM LANDING PAGE CSS
+           ========================================================================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        :root {
+            --primary: #3182ce;
+            --primary-glow: rgba(49, 130, 206, 0.35);
+            --secondary: #06b6d4;
+            --bg-dark: #070b13;
+            --text-light: #f8fafc;
+            --text-gray: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
             line-height: 1.6;
-            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Abstract Aurora Glows */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 700px;
+            height: 700px;
+            background: radial-gradient(circle, rgba(49, 130, 206, 0.18) 0%, rgba(7, 11, 19, 0) 70%);
+            top: -10%;
+            left: -10%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(7, 11, 19, 0) 70%);
+            top: 40%;
+            right: -20%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Floating Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
         }
 
         /* Navigation */
         nav {
-            background: white;
-            padding: 1rem 0;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            background: rgba(7, 11, 19, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.1rem 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: all 0.3s;
         }
 
         .nav-container {
@@ -39,16 +96,14 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             cursor: pointer;
+            text-decoration: none;
         }
 
         .logo-icon-container {
-            width: 38px;
-            height: 38px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            width: 36px;
+            height: 36px;
         }
 
         .custom-logo-svg {
@@ -57,33 +112,34 @@
         }
 
         .logo-text {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0f2d59;
-            letter-spacing: -0.03em;
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: white;
+            letter-spacing: -0.04em;
             text-transform: lowercase;
         }
 
         .logo-text-accent {
-            color: #3182ce;
+            color: var(--secondary);
         }
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 2.25rem;
             align-items: center;
             list-style: none;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: #333;
+            color: var(--text-gray);
             font-weight: 500;
+            font-size: 0.95rem;
             transition: color 0.3s;
         }
 
         .nav-links a:hover {
-            color: #2563eb;
+            color: white;
         }
 
         .auth-buttons {
@@ -93,157 +149,144 @@
         }
 
         .btn-login {
-            padding: 0.6rem 1.5rem;
-            border: 2px solid #2563eb;
-            background: transparent;
-            color: #2563eb;
-            border-radius: 8px;
+            padding: 0.65rem 1.4rem;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03);
+            color: white;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.92rem;
             transition: all 0.3s;
             text-decoration: none;
-            display: inline-block;
         }
 
         .btn-login:hover {
-            background: #2563eb;
-            color: white;
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.3);
         }
 
         .btn-signup {
-            padding: 0.6rem 1.5rem;
-            background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+            padding: 0.65rem 1.4rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
+            font-size: 0.92rem;
             transition: all 0.3s;
             text-decoration: none;
-            display: inline-block;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 4px 15px var(--primary-glow);
         }
 
         .btn-signup:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 8px 20px rgba(49, 130, 206, 0.5);
         }
 
         /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
-            color: white;
-            padding: 6rem 2rem;
-            text-align: center;
-            overflow: hidden;
+            padding: 7rem 2rem 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 4rem;
+            align-items: center;
             position: relative;
-        }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -10%;
-            width: 500px;
-            height: 500px;
-            background: rgba(6, 182, 212, 0.1);
-            border-radius: 50%;
-            animation: float 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        .hero::after {
-            content: '';
-            position: absolute;
-            bottom: -30%;
-            left: -10%;
-            width: 400px;
-            height: 400px;
-            background: rgba(37, 99, 235, 0.1);
-            border-radius: 50%;
-            animation: float 8s ease-in-out infinite reverse;
-            pointer-events: none;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-30px); }
+            z-index: 10;
         }
 
         .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 1;
+            text-align: left;
         }
 
         .hero h1 {
-            font-size: 3.5rem;
+            font-size: 3.8rem;
             font-weight: 800;
-            margin-bottom: 1.5rem;
             line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.04em;
+            background: linear-gradient(to right, #ffffff, #93c5fd, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .hero p {
-            font-size: 1.3rem;
-            margin-bottom: 2rem;
-            opacity: 0.9;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            font-size: 1.15rem;
+            color: var(--text-gray);
+            margin-bottom: 2.5rem;
+            max-width: 580px;
         }
 
         .hero-buttons {
             display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 1.25rem;
         }
 
-        .btn-primary {
-            padding: 1rem 2.5rem;
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+        .btn-hero-primary {
+            padding: 0.9rem 2rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 6px 20px rgba(6, 182, 212, 0.3);
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
             text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(6, 182, 212, 0.4);
-        }
-
-        .btn-secondary {
-            padding: 1rem 2.5rem;
-            background: white;
-            color: #0f172a;
-            border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
-            text-decoration: none;
-            display: inline-block;
+            box-shadow: 0 4px 20px var(--primary-glow);
         }
 
-        .btn-secondary:hover {
-            background: #f0f9ff;
+        .btn-hero-primary:hover {
             transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(49, 130, 206, 0.6);
         }
 
-        /* Features Section */
+        .btn-hero-secondary {
+            padding: 0.9rem 2rem;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.02);
+            color: white;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        /* Mockup Panel styling */
+        .hero-visual {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .monitor-mockup {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            width: 100%;
+            max-width: 440px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        /* Features Section (Bento Grid) */
         .features {
-            padding: 5rem 2rem;
-            background: #f8fafc;
+            padding: 7rem 2rem;
+            background: rgba(255, 255, 255, 0.01);
+            border-top: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 10;
         }
 
         .features-container {
@@ -251,64 +294,116 @@
             margin: 0 auto;
         }
 
-        .section-title {
+        .section-header {
             text-align: center;
-            font-size: 2.5rem;
+            margin-bottom: 5rem;
+        }
+
+        .section-title {
+            font-size: 2.75rem;
             font-weight: 800;
+            letter-spacing: -0.03em;
             margin-bottom: 1rem;
-            color: #0f172a;
+            background: linear-gradient(to right, white, #e2e8f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .section-subtitle {
-            text-align: center;
             font-size: 1.1rem;
-            color: #64748b;
-            margin-bottom: 4rem;
+            color: var(--text-gray);
             max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+            margin: 0 auto;
         }
 
-        .features-grid {
+        .bento-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.75rem;
         }
 
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
-            border-left: 4px solid #2563eb;
+        .bento-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 250px;
         }
 
-        .feature-card:hover {
+        .bento-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(7, 11, 19, 0) 40%, rgba(7, 11, 19, 0.8) 100%);
+            z-index: 1;
+        }
+
+        .bento-card:hover {
             transform: translateY(-5px);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(49, 130, 206, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
         }
 
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
+        .bento-card.wide {
+            grid-column: span 2;
         }
 
-        .feature-card h3 {
-            font-size: 1.3rem;
-            margin-bottom: 0.8rem;
-            color: #0f172a;
+        .bento-card.tall {
+            grid-row: span 2;
+            min-height: 520px;
         }
 
-        .feature-card p {
-            color: #64748b;
-            line-height: 1.7;
+        .bento-content {
+            position: relative;
+            z-index: 10;
         }
 
-        /* How It Works */
+        .bento-card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+
+        .bento-card p {
+            font-size: 0.95rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+        }
+
+        .bento-badge {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0.3rem 0.75rem;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 9999px;
+            color: white;
+            z-index: 10;
+        }
+
+        /* How It Works Section */
         .how-it-works {
-            padding: 5rem 2rem;
-            background: white;
+            padding: 7rem 2rem;
+            background: var(--bg-dark);
+            border-top: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 10;
         }
 
         .how-it-works-container {
@@ -316,138 +411,184 @@
             margin: 0 auto;
         }
 
-        .steps-grid {
+        .steps-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 3rem;
+            margin-top: 4rem;
         }
 
-        .step {
-            text-align: center;
+        .step-item {
+            position: relative;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            padding: 2.5rem 2rem;
+            border-radius: 20px;
+            transition: all 0.3s;
         }
 
-        .step-number {
-            display: inline-flex;
+        .step-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        .step-badge {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 12px;
+            display: flex;
             align-items: center;
             justify-content: center;
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+            font-size: 1.4rem;
+            font-weight: 800;
             color: white;
-            border-radius: 50%;
-            font-size: 1.8rem;
+            margin-bottom: 1.75rem;
+            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.3);
+        }
+
+        .step-item h3 {
+            font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: white;
         }
 
-        .step h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.8rem;
-            color: #0f172a;
-        }
-
-        .step p {
-            color: #64748b;
+        .step-item p {
+            font-size: 0.95rem;
+            color: var(--text-gray);
             line-height: 1.6;
         }
 
-        /* User Types Section */
-        .user-types {
-            padding: 5rem 2rem;
-            background: #f8fafc;
+        /* User Roles / For Everyone Section */
+        .roles {
+            padding: 7rem 2rem;
+            background: rgba(255,255,255,0.01);
+            border-top: 1px solid var(--glass-border);
+            position: relative;
+            z-index: 10;
         }
 
-        .user-types-container {
+        .roles-container {
             max-width: 1200px;
             margin: 0 auto;
         }
 
-        .types-grid {
+        .roles-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2.25rem;
+            margin-top: 4rem;
         }
 
-        .type-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 12px;
+        .role-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
             text-align: center;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .type-card:hover {
+        .role-card:hover {
             transform: scale(1.02);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .type-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
+        .role-card.citizen:hover { border-color: rgba(6, 182, 212, 0.4); }
+        .role-card.worker:hover { border-color: rgba(49, 130, 206, 0.4); }
+        .role-card.admin:hover { border-color: rgba(139, 92, 246, 0.4); }
 
-        .type-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 0.8rem;
-            color: #0f172a;
-        }
-
-        .type-card p {
-            color: #64748b;
-            line-height: 1.7;
+        .role-icon-placeholder {
+            width: 70px;
+            height: 70px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
             margin-bottom: 1.5rem;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .role-card.citizen .role-icon-placeholder { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2); color: #22d3ee; }
+        .role-card.worker .role-icon-placeholder { background: rgba(49, 130, 206, 0.1); border-color: rgba(49, 130, 206, 0.2); color: #60a5fa; }
+        .role-card.admin .role-icon-placeholder { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2); color: #c084fc; }
+
+        .role-card h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: white;
+        }
+
+        .role-card p {
+            font-size: 0.95rem;
+            color: var(--text-gray);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            min-height: 75px;
         }
 
         /* CTA Section */
-        .cta-section {
-            background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
-            color: white;
-            padding: 4rem 2rem;
+        .cta {
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 13, 22, 0.95) 100%);
+            border-top: 1px solid var(--glass-border);
+            padding: 6rem 2rem;
             text-align: center;
+            position: relative;
+            z-index: 10;
         }
 
-        .cta-section h2 {
-            font-size: 2.5rem;
+        .cta-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .cta h2 {
+            font-size: 3rem;
             font-weight: 800;
+            letter-spacing: -0.04em;
             margin-bottom: 1.5rem;
+            background: linear-gradient(to right, white, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .cta-section p {
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            max-width: 600px;
-            margin-left: auto;
-            margin-right: auto;
+        .cta p {
+            font-size: 1.15rem;
+            color: var(--text-gray);
+            margin-bottom: 2.5rem;
         }
 
         /* Footer */
         footer {
-            background: #0f172a;
-            color: #94a3b8;
-            padding: 3rem 2rem;
+            background: #05080f;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 4rem 2rem;
             text-align: center;
-        }
-
-        .footer-container {
-            max-width: 1200px;
-            margin: 0 auto;
+            position: relative;
+            z-index: 10;
         }
 
         .footer-links {
             display: flex;
             justify-content: center;
-            gap: 2rem;
+            gap: 2.5rem;
             flex-wrap: wrap;
             margin-bottom: 2rem;
         }
 
         .footer-links a {
-            color: #94a3b8;
+            color: var(--text-gray);
             text-decoration: none;
+            font-size: 0.95rem;
             transition: color 0.3s;
         }
 
@@ -456,41 +597,41 @@
         }
 
         .footer-bottom {
-            border-top: 1px solid #1e293b;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
             padding-top: 2rem;
             margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #475569;
         }
 
-        /* Mobile Responsive */
-        @media (max-width: 768px) {
-            .nav-links {
-                gap: 1rem;
+        /* Mobile Layouts */
+        @media (max-width: 968px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding-top: 5rem;
+                gap: 3rem;
+                text-align: center;
             }
-
             .hero h1 {
-                font-size: 2rem;
+                font-size: 2.8rem;
             }
-
             .hero p {
-                font-size: 1rem;
+                margin: 0 auto 2.5rem auto;
             }
-
             .hero-buttons {
-                flex-direction: column;
-                align-items: center;
+                justify-content: center;
             }
-
-            .btn-primary, .btn-secondary {
-                width: 100%;
-                max-width: 300px;
+            .bento-grid {
+                grid-template-columns: 1fr;
             }
-
-            .section-title {
-                font-size: 2rem;
+            .bento-card.wide, .bento-card.tall {
+                grid-column: span 1;
+                grid-row: span 1;
+                min-height: 250px;
             }
-
-            .cta-section h2 {
-                font-size: 1.8rem;
+            .steps-container, .roles-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
             }
         }
     </style>
@@ -499,18 +640,18 @@
     <!-- Navigation -->
     <nav>
         <div class="nav-container">
-            <div class="logo" onclick="window.location.reload()">
+            <a href="#" class="logo">
                 <div class="logo-icon-container">
                     <svg class="custom-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <!-- Document sheet -->
                         <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
                         <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" />
                         <!-- Lines on document -->
-                        <line x1="61" y1="58" x2="76" y2="58" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
-                        <line x1="61" y1="66" x2="76" y2="66" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
-                        <line x1="61" y1="74" x2="76" y2="74" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="58" x2="76" y2="58" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="66" x2="76" y2="66" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="74" x2="76" y2="74" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
                         <!-- Speech bubble -->
-                        <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#0f2d59" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
                         <!-- Buildings inside speech bubble -->
                         <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#4299e1" />
                         <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#3182ce" />
@@ -518,7 +659,7 @@
                     </svg>
                 </div>
                 <span class="logo-text">civic <span class="logo-text-accent">report</span></span>
-            </div>
+            </a>
             <ul class="nav-links">
                 <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
@@ -535,156 +676,191 @@
     <section class="hero">
         <div class="hero-content">
             <h1>Empower Your Neighborhood</h1>
-            <p>Report civic issues, track progress, and build a better community. Your voice matters!</p>
+            <p>Report local infrastructure issues, upvote resident complaints, track worker order assignments, and build a safer, cleaner community together.</p>
             <div class="hero-buttons">
-                <a href="{{ route('register') }}" class="btn-primary">📍 Start Reporting Now</a>
-                <a href="#how-it-works" class="btn-secondary">Learn More</a>
+                <a href="{{ route('register') }}" class="btn-hero-primary">Start Reporting Now</a>
+                <a href="#features" class="btn-hero-secondary">Explore Features</a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <!-- Simulated Live Platform Monitor Panel -->
+            <div class="monitor-mockup">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite;"></span>
+                        <span style="font-weight: 700; font-size: 0.85rem; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Live City Monitor</span>
+                    </div>
+                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.25);">ACTIVE</span>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem;">
+                        <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">📈</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: white; display: block;">94.2%</span>
+                        <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Resolution Rate</span>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem;">
+                        <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">⚡</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: white; display: block;">&lt; 2.4h</span>
+                        <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Avg Response</span>
+                    </div>
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">Live Feed Activity</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
+                            <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">Just now</span>
+                            <span style="color: #e2e8f0; font-weight: 500;">📢 Dhanmondi road repairs scheduled</span>
+                        </div>
+                        <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
+                            <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">12m ago</span>
+                            <span style="color: #e2e8f0; font-weight: 500;">✅ Mirpur street light issue resolved</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
-
-    <!-- Features Section -->
+    <!-- Bento Grid Features Section -->
     <section class="features" id="features">
         <div class="features-container">
-            <h2 class="section-title">Why Choose CivicReport?</h2>
-            <p class="section-subtitle">A platform designed to make civic engagement simple, transparent, and impactful</p>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Easy Reporting</h3>
-                    <p>Report issues with photos and descriptions. Your neighborhood, your voice.</p>
+            <div class="section-header">
+                <h2 class="section-title">Features Designed for Impact</h2>
+                <p class="section-subtitle">A state-of-the-art framework built to keep community governance fast, visual, and transparent.</p>
+            </div>
+
+            <div class="bento-grid">
+                <!-- Bento Card 1 -->
+                <div class="bento-card wide">
+                    <span class="bento-badge">Operational</span>
+                    <div class="bento-content">
+                        <h3>Easy Citizen Reporting</h3>
+                        <p>Citizens can upload descriptions and photo evidence of potholes, broken street lights, or clogged drains instantly, mapping them with precise coordinates.</p>
+                    </div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👥</div>
-                    <h3>Community Support</h3>
-                    <p>Vote on issues and show support for causes that matter to you.</p>
+
+                <!-- Bento Card 2 -->
+                <div class="bento-card tall">
+                    <span class="bento-badge">Algorithmic</span>
+                    <div class="bento-content">
+                        <h3>Democracy-driven Priority</h3>
+                        <p>Resident upvotes dynamically raise the urgency weight of local complaints, highlighting community hotspots immediately for dispatch on the admin maps dashboard.</p>
+                    </div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Real-time Updates</h3>
-                    <p>Track progress as your reported issues move through the system.</p>
+
+                <!-- Bento Card 3 -->
+                <div class="bento-card">
+                    <span class="bento-badge">Real-time</span>
+                    <div class="bento-content">
+                        <h3>Timeline Logs</h3>
+                        <p>Track your reported issue's timeline from Pending to Work Order Dispatched to Completed.</p>
+                    </div>
                 </div>
-                <div class="feature-card">
-                    <div class="feature-icon">👷</div>
-                    <h3>Direct Assignment</h3>
-                    <p>Issues are assigned to qualified workers for swift resolution.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💬</div>
-                    <h3>Communication Hub</h3>
-                    <p>Discuss issues and collaborate with your community members.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3>Impact Tracking</h3>
-                    <p>See your contributions and celebrate community achievements.</p>
+
+                <!-- Bento Card 4 -->
+                <div class="bento-card">
+                    <span class="bento-badge">Security</span>
+                    <div class="bento-content">
+                        <h3>Sanitization & Safety</h3>
+                        <p>Fully secure middleware routing prevents cross-site scripting (XSS) and controls access levels.</p>
+                    </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works -->
+    <!-- How It Works Section -->
     <section class="how-it-works" id="how-it-works">
         <div class="how-it-works-container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Simple steps to create positive change in your community</p>
-            
-            <div class="steps-grid">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Create Account</h3>
-                    <p>Sign up as a Citizen, Worker, or Admin. It's quick and easy!</p>
+            <div class="section-header">
+                <h2 class="section-title">Simple Operations Flow</h2>
+                <p class="section-subtitle">How our platform connects municipal boards, workers, and citizens seamlessly.</p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-item">
+                    <div class="step-badge">1</div>
+                    <h3>Report Issue</h3>
+                    <p>Citizens file complaints detailing categories, coordinates, and photo evidence.</p>
                 </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Report Issues</h3>
-                    <p>Describe the problem, add photos, and submit to your area.</p>
+                <div class="step-item">
+                    <div class="step-badge">2</div>
+                    <h3>Dispatch Workers</h3>
+                    <p>Administrators check analytics hotspots and assign work orders to designated operations staff.</p>
                 </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Get Assigned</h3>
-                    <p>Issues are prioritized and assigned to qualified workers.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <h3>Track & Support</h3>
-                    <p>Follow progress and vote to show community support.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">5</div>
-                    <h3>Resolution</h3>
-                    <p>Issues are marked complete with updates and photos.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">6</div>
-                    <h3>Celebrate Impact</h3>
-                    <p>Earn recognition as a community champion!</p>
+                <div class="step-item">
+                    <div class="step-badge">3</div>
+                    <h3>Verify Resolution</h3>
+                    <p>Workers resolve the tasks, upload evidence, and update status timelines for community review.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- User Types -->
-    <section class="user-types" id="user-types">
-        <div class="user-types-container">
-            <h2 class="section-title">For Everyone</h2>
-            <p class="section-subtitle">Different roles, one mission: building better communities</p>
-            
-            <div class="types-grid">
-                <div class="type-card">
-                    <div class="type-icon">👤</div>
-                    <h3>Citizens</h3>
-                    <p>Report civic issues and participate in your community's improvement. Vote on issues and see real progress.</p>
-                    <a href="{{ route('login') }}" class="btn-signup">Sign In as Citizen</a>
+    <!-- User Types / For Everyone Section -->
+    <section class="roles" id="user-types">
+        <div class="roles-container">
+            <div class="section-header">
+                <h2 class="section-title">Tailored Portals for Everyone</h2>
+                <p class="section-subtitle">Custom modules built to empower every stakeholder role in public improvements.</p>
+            </div>
+
+            <div class="roles-grid">
+                <!-- Role Card 1 -->
+                <div class="role-card citizen">
+                    <div class="role-icon-placeholder">👤</div>
+                    <h3>Citizens Portal</h3>
+                    <p>Submit complaints, upvote local reports, discuss resolutions, and track progress timelines from your personalized space.</p>
+                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Citizen</a>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">👷</div>
-                    <h3>Workers</h3>
-                    <p>Get assigned to civic projects and make a direct impact. Update status and resolve community issues.</p>
-                    <a href="{{ route('login') }}" class="btn-signup">Sign In as Worker</a>
+
+                <!-- Role Card 2 -->
+                <div class="role-card worker">
+                    <div class="role-icon-placeholder">🔧</div>
+                    <h3>Worker Portal</h3>
+                    <p>Access assigned city work orders, navigate maps, update progress, and submit photo confirmation logs.</p>
+                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Worker</a>
                 </div>
-                <div class="type-card">
-                    <div class="type-icon">👨‍💼</div>
-                    <h3>Administrators</h3>
-                    <p>Manage the platform, assign workers, and oversee operations. (Contact platform admin)</p>
-                    <a href="{{ route('login') }}" class="btn-signup">Admin Login</a>
+
+                <!-- Role Card 3 -->
+                <div class="role-card admin">
+                    <div class="role-icon-placeholder">💼</div>
+                    <h3>Admin Console</h3>
+                    <p>Monitor platform statistics, manage complaint categories, dispatch workers, and suspend or activate accounts.</p>
+                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Admin</a>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- CTA Section -->
-    <section class="cta-section">
-        <h2>Ready to Make a Difference?</h2>
-        <p>Join thousands of citizens working together to improve their neighborhoods</p>
-        <div class="hero-buttons">
-            <a href="{{ route('register') }}" class="btn-primary">Get Started Today</a>
-            <a href="{{ route('login') }}" class="btn-secondary">I Already Have an Account</a>
+    <section class="cta">
+        <div class="cta-container">
+            <h2>Ready to Improve Your Neighborhood?</h2>
+            <p>Join citizens and city workers collaborating in real-time to build better, safer municipalities today.</p>
+            <div class="hero-buttons">
+                <a href="{{ route('register') }}" class="btn-hero-primary">Create Your Account</a>
+                <a href="{{ route('login') }}" class="btn-hero-secondary">Sign In Here</a>
+            </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer>
-        <div class="footer-container">
-            <div class="footer-links">
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="#user-types">User Types</a>
-                <a href="#privacy">Privacy Policy</a>
-                <a href="#contact">Contact</a>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 CivicReport. Empowering communities together.</p>
-            </div>
+        <div class="footer-links">
+            <a href="#features">Features</a>
+            <a href="#how-it-works">How It Works</a>
+            <a href="#user-types">User Types</a>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 CivicReport. Built to support municipal governance.</p>
         </div>
     </footer>
 
     <script>
-        // Ensure all navigation links work properly
+        // Smooth scrolling for anchor links
         document.addEventListener('DOMContentLoaded', function() {
-            // Smooth scrolling for anchor links
             document.querySelectorAll('a[href^="#"]').forEach(anchor => {
                 anchor.addEventListener('click', function(e) {
                     if (this.getAttribute('href').length > 1) {

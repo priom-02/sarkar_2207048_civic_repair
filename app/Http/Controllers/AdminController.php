@@ -216,4 +216,124 @@ class AdminController extends Controller
             'message' => 'Worker assigned successfully!'
         ]);
     }
+
+    /**
+     * Fetch all users (citizens and workers) for user management.
+     */
+    public function getUsers(): JsonResponse
+    {
+        $users = User::with('role')
+            ->where('id', '!=', \Illuminate\Support\Facades\Auth::id())
+            ->orderBy('role_id', 'desc')
+            ->orderBy('full_name', 'asc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'full_name' => $user->full_name,
+                    'email' => $user->email,
+                    'phone' => $user->phone ?? 'N/A',
+                    'role_name' => $user->role->role_name ?? 'Citizen',
+                    'is_active' => (bool) $user->is_active,
+                ];
+            });
+
+        return response()->json($users);
+    }
+
+    /**
+     * Toggle user is_active status.
+     */
+    public function toggleUserActive($id): JsonResponse
+    {
+        /** @var \App\Models\User $user */
+        $user = \App\Models\User::findOrFail($id);
+
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        $statusStr = $user->is_active ? 'activated' : 'deactivated';
+        return response()->json([
+            'success' => true,
+            'message' => "User account has been successfully {$statusStr}."
+        ]);
+    }
+    /**
+     * Fetch all areas.
+     */
+    public function getAreas(): JsonResponse
+    {
+        $areas = \App\Models\Area::orderBy('division')
+            ->orderBy('district')
+            ->orderBy('upazila')
+            ->orderBy('union_parishad')
+            ->get();
+        return response()->json([
+            'areas' => $areas
+        ]);
+    }
+
+    /**
+     * Store a new area.
+     */
+    public function storeArea(Request $request): JsonResponse
+    {
+        $request->validate([
+            'division' => 'required|string|max:100',
+            'district' => 'required|string|max:100',
+            'upazila' => 'required|string|max:100',
+            'union_parishad' => 'nullable|string|max:100',
+        ]);
+
+        $division = ucwords(strtolower(trim($request->division)));
+        $district = ucwords(strtolower(trim($request->district)));
+        $upazila = ucwords(strtolower(trim($request->upazila)));
+        $union = $request->union_parishad ? ucwords(strtolower(trim($request->union_parishad))) : null;
+
+        $areaName = $upazila;
+        if ($union) {
+            $areaName .= ' ' . $union;
+        }
+
+        $area = \App\Models\Area::create([
+            'division' => $division,
+            'district' => $district,
+            'upazila' => $upazila,
+            'union_parishad' => $union,
+            'area_name' => $areaName,
+            'city' => $district,
+            'latitude_center' => 23.8103,
+            'longitude_center' => 90.4125,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Area created successfully!',
+            'area' => $area
+        ]);
+    }
+
+    /**
+     * Delete an area.
+     */
+    public function deleteArea($id): JsonResponse
+    {
+        $area = \App\Models\Area::findOrFail($id);
+
+        // Check if there are active issues associated with this area
+        $hasIssues = Issue::where('area_id', $id)->exists();
+        if ($hasIssues) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete this area because there are active reported issues linked to it.'
+            ], 422);
+        }
+
+        $area->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Area deleted successfully!'
+        ]);
+    }
 }
