@@ -55,6 +55,10 @@
                         <div class="alert alert-success">{{ session('success') }}</div>
                     @endif
 
+                    @if (session('status'))
+                        <div class="alert alert-success">{{ session('status') }}</div>
+                    @endif
+
                     <form action="{{ route('login') }}" method="POST" class="login-form">
                         @csrf
 
@@ -93,6 +97,11 @@
                                 <input type="checkbox" name="remember" id="remember">
                                 <span>Remember me</span>
                             </label>
+                            @if (Route::has('password.request'))
+                                <a class="forgot-password-link" href="{{ route('password.request') }}" style="color: #06b6d4; text-decoration: none; font-size: 0.875rem;">
+                                    Forgot password?
+                                </a>
+                            @endif
                         </div>
 
                         <button type="submit" class="btn btn-login">Sign In</button>
