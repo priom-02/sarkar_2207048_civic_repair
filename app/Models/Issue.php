@@ -108,4 +108,12 @@ class Issue extends Model
     {
         return $this->hasMany(Notification::class);
     }
+
+    /**
+     * Get the feedback rating for this issue.
+     */
+    public function feedback(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(IssueFeedback::class);
+    }
 }

@@ -14,8 +14,8 @@ html {
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Roboto, sans-serif;
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    color: #2c3e50;
+    background: #f8fafc;
+    color: #0f172a;
     min-height: 100vh;
 }
 
@@ -30,11 +30,11 @@ body {
 }
 
 .admin-header {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
     color: white;
     padding: 2rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-bottom: 4px solid #1a3a6b;
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.15);
+    border-bottom: 4px solid #0f766e;
 }
 
 .header-content {
@@ -140,7 +140,7 @@ section > h2 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     text-align: center;
     transition: all 0.3s ease;
-    border-top: 4px solid #2a5298;
+    border-top: 4px solid #0d9488;
 }
 
 .metric-card:hover {
@@ -157,7 +157,7 @@ section > h2 {
 .metric-number {
     font-size: 2.5rem;
     font-weight: 800;
-    color: #2a5298;
+    color: #0d9488;
     margin-bottom: 0.5rem;
 }
 
@@ -358,7 +358,7 @@ section > h2 {
 }
 
 .category-item {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
     color: white;
     padding: 1.5rem;
     border-radius: 10px;
@@ -383,7 +383,7 @@ section > h2 {
 
 .category-item:hover {
     transform: translateY(-8px);
-    box-shadow: 0 12px 25px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 12px 25px rgba(13, 148, 136, 0.25);
 }
 
 .category-item:hover::before {
@@ -421,13 +421,13 @@ section > h2 {
     padding: 2rem;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 2px dashed #667eea;
+    border: 2px dashed #0d9488;
 }
 
 .create-category-box h3 {
     font-size: 1.3rem;
     margin-bottom: 1.5rem;
-    color: #2c3e50;
+    color: #0f172a;
     font-weight: 700;
 }
 
@@ -445,7 +445,7 @@ section > h2 {
 
 .form-group label {
     font-weight: 700;
-    color: #2c3e50;
+    color: #0f172a;
     font-size: 0.95rem;
 }
 
@@ -462,8 +462,8 @@ section > h2 {
 .form-group input:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: #0d9488;
+    box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1);
 }
 
 .form-group textarea {
@@ -522,7 +522,7 @@ section > h2 {
 
 .quick-icon:hover {
     background: #e5e7eb;
-    border-color: #667eea;
+    border-color: #0d9488;
     transform: scale(1.1);
 }
 
@@ -532,7 +532,7 @@ section > h2 {
 
 .btn-create {
     padding: 1rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
     color: white;
     border: none;
     border-radius: 8px;
@@ -540,12 +540,12 @@ section > h2 {
     font-size: 1rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 4px 15px rgba(13, 148, 136, 0.2);
 }
 
 .btn-create:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(13, 148, 136, 0.3);
 }
 
 .btn-create:active {

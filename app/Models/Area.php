@@ -15,6 +15,10 @@ class Area extends Model
         'city',
         'latitude_center',
         'longitude_center',
+        'division',
+        'district',
+        'upazila',
+        'union_parishad',
     ];
 
     protected $casts = [

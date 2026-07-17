@@ -9,16 +9,16 @@
 }
 
 :root {
-    --primary-color: #3182ce;
-    --primary-glow: rgba(49, 130, 206, 0.4);
-    --secondary-color: #06b6d4;
-    --dark-bg: #090d16;
-    --card-bg: rgba(255, 255, 255, 0.7);
-    --card-border: rgba(255, 255, 255, 0.4);
+    --primary-color: #0d9488; /* Spruce Teal */
+    --primary-glow: rgba(13, 148, 136, 0.15);
+    --secondary-color: #d97706; /* Amber Gold Accent */
+    --dark-bg: #f8fafc; /* Clean Light Slate Background */
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.08);
     --text-main: #0f172a;
     --text-muted: #475569;
-    --input-bg: rgba(255, 255, 255, 0.7);
-    --input-border: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(0, 0, 0, 0.01);
+    --input-border: rgba(0, 0, 0, 0.08);
 }
 
 body {
@@ -31,6 +31,7 @@ body {
     padding: 2rem 1.5rem;
     overflow-x: hidden;
     position: relative;
+    color: var(--text-main);
 }
 
 /* Floating abstract shapes for background depth */
@@ -39,7 +40,7 @@ body::before {
     position: absolute;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(49, 130, 206, 0.25) 0%, rgba(9, 13, 22, 0) 70%);
+    background: radial-gradient(circle, rgba(13, 148, 136, 0.06) 0%, rgba(248, 250, 252, 0) 70%);
     top: -10%;
     left: -10%;
     z-index: 0;
@@ -52,7 +53,7 @@ body::after {
     position: absolute;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(9, 13, 22, 0) 70%);
+    background: radial-gradient(circle, rgba(217, 119, 6, 0.04) 0%, rgba(248, 250, 252, 0) 70%);
     bottom: -10%;
     right: -10%;
     z-index: 0;
@@ -76,18 +77,16 @@ body::after {
 .auth-wrapper {
     display: grid;
     grid-template-columns: 1.1fr 1.20fr;
-    background: rgba(255, 255, 255, 0.07);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 28px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
     overflow: hidden;
 }
 
 /* Left Branding Column */
 .auth-branding {
-    background: linear-gradient(145deg, rgba(15, 23, 42, 0.8) 0%, rgba(17, 24, 39, 0.6) 100%);
+    background: linear-gradient(145deg, #0d9488 0%, #0f766e 100%);
     padding: 3.5rem 3rem;
     display: flex;
     flex-direction: column;
@@ -180,7 +179,7 @@ body::after {
     display: block;
     font-size: 0.88rem;
     font-weight: 600;
-    color: #e2e8f0;
+    color: #334155;
     margin-bottom: 0.5rem;
 }
 
@@ -188,29 +187,29 @@ body::after {
 .form-group select {
     width: 100%;
     padding: 0.9rem 1.1rem;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.01);
+    border: 1px solid rgba(0, 0, 0, 0.08);
     border-radius: 12px;
     font-size: 0.95rem;
-    color: white;
+    color: #0f172a;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     outline: none;
 }
 
 .form-group input::placeholder {
-    color: #64748b;
+    color: #94a3b8;
 }
 
 .form-group input:focus,
 .form-group select:focus {
-    background: rgba(255, 255, 255, 0.1);
+    background: #ffffff;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 4px var(--primary-glow);
 }
 
 .form-group select option {
-    background: #0f172a;
-    color: white;
+    background: #ffffff;
+    color: #0f172a;
 }
 
 .form-group small {
@@ -239,7 +238,7 @@ body::after {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #cbd5e1;
+    color: var(--text-muted);
     font-size: 0.9rem;
     cursor: pointer;
 }
@@ -249,6 +248,7 @@ body::after {
     height: 18px;
     accent-color: var(--primary-color);
     cursor: pointer;
+    margin: 0;
 }
 
 .forgot-password-link {
@@ -258,7 +258,7 @@ body::after {
 }
 
 .forgot-password-link:hover {
-    color: #22d3ee !important;
+    color: var(--secondary-color) !important;
     text-decoration: underline !important;
 }
 
@@ -266,7 +266,7 @@ body::after {
 .btn-login {
     width: 100%;
     padding: 1rem;
-    background: linear-gradient(135deg, #3182ce 0%, #06b6d4 100%);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     border: none;
     border-radius: 12px;
     font-size: 1.05rem;
@@ -274,12 +274,12 @@ body::after {
     color: white;
     cursor: pointer;
     transition: all 0.3s;
-    box-shadow: 0 4px 15px rgba(49, 130, 206, 0.35);
+    box-shadow: 0 4px 15px var(--primary-glow);
 }
 
 .btn-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(49, 130, 206, 0.5);
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
 }
 
 .btn-login:active {
@@ -339,15 +339,17 @@ body::after {
     color: #94a3b8;
 }
 
-.signup-link {
-    color: #06b6d4;
+.signup-link,
+.signin-link {
+    color: var(--secondary-color);
     font-weight: 600;
     text-decoration: none;
     transition: color 0.2s;
 }
 
-.signup-link:hover {
-    color: #22d3ee;
+.signup-link:hover,
+.signin-link:hover {
+    color: var(--secondary-color);
     text-decoration: underline;
 }
 
@@ -399,7 +401,7 @@ body::after {
 }
 
 .accept-terms a {
-    color: #06b6d4;
+    color: var(--secondary-color);
     text-decoration: none;
 }
 

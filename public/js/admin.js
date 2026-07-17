@@ -451,7 +451,8 @@ function renderIssuesTable() {
         // Worker options
         const workerOptionsHTML = currentWorkers.map(w => {
             const isSelected = w.id === issue.assigned_worker_id ? 'selected' : '';
-            return `<option value="${w.id}" ${isSelected}>${escapeHtml(w.full_name)}</option>`;
+            const caseload = w.active_caseload !== undefined ? ` (${w.active_caseload} active)` : '';
+            return `<option value="${w.id}" ${isSelected}>${escapeHtml(w.full_name)}${caseload}</option>`;
         }).join('');
 
         // Action controls based on status
@@ -501,6 +502,7 @@ function renderIssuesTable() {
                 <td>
                     <span class="status-badge ${statusBadgeClass}">${escapeHtml(issue.status_name)}</span>
                     ${issue.assigned_worker_id ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; font-style: italic;">Assigned to: ${escapeHtml(issue.assigned_worker_name)}</div>` : ''}
+                    <button onclick="showIssueDetails(${issue.id})" class="btn-assign" style="margin-top: 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.78rem; background: #64748b; border: 1px solid #64748b; width: 100%; justify-content: center; display: inline-flex;">👁️ Details</button>
                 </td>
                 <td>
                     ${assignmentControlHTML}
@@ -795,6 +797,119 @@ async function deleteGeographicArea(areaId, button) {
     }
 }
 
+async function showIssueDetails(issueId) {
+    const modal = document.getElementById('issueDetailsModal');
+    const loading = document.getElementById('modalDetailsLoading');
+    const body = document.getElementById('modalDetailsBody');
+
+    if (!modal || !loading || !body) return;
+
+    // Show loading
+    loading.style.display = 'block';
+    body.style.display = 'none';
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Find the issue
+    const issue = currentIssues.find(i => i.id === issueId);
+    if (!issue) {
+        loading.innerHTML = `<p style="color: #ef4444; font-weight: 600;">Error: Issue not found</p>`;
+        return;
+    }
+
+    // Separate before and after photos
+    const citizenPhotos = (issue.media || []).filter(m => m.uploaded_by_role === 1);
+    const workerPhotos = (issue.media || []).filter(m => m.uploaded_by_role === 2);
+
+    let beforePhotosHtml = `<div class="no-proof">📷 No photos uploaded by citizen</div>`;
+    if (citizenPhotos.length > 0) {
+        beforePhotosHtml = citizenPhotos.map(m => `
+            <a href="${m.url}" target="_blank">
+                <img src="${m.url}" class="proof-img" alt="Citizen Proof">
+            </a>
+        `).join('');
+    }
+
+    let afterPhotosHtml = `<div class="no-proof">🔧 No resolution photos uploaded yet</div>`;
+    if (workerPhotos.length > 0) {
+        afterPhotosHtml = workerPhotos.map(m => `
+            <a href="${m.url}" target="_blank">
+                <img src="${m.url}" class="proof-img" alt="Worker Resolution Proof">
+            </a>
+        `).join('');
+    }
+
+    // Render timeline
+    let timelineHtml = '<p style="font-size: 0.85rem; color: #64748b; font-style: italic; padding: 0.5rem 0;">No status changes logged yet.</p>';
+    if (issue.history && issue.history.length > 0) {
+        timelineHtml = issue.history.map(h => `
+            <div class="audit-item">
+                <span class="audit-time">${h.time} &bull; by ${escapeHtml(h.user_name)}</span>
+                <div class="audit-desc">Changed from "${escapeHtml(h.old_status)}" to "${escapeHtml(h.new_status)}"</div>
+                ${h.remark ? `<div class="audit-remark">${escapeHtml(h.remark)}</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    // Build overall content
+    const statusClean = issue.status_name.toLowerCase().replace(/\s+/g, '');
+    const statusBadgeClass = `status-${statusClean}`;
+
+    body.innerHTML = `
+        <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+                <div>
+                    <span style="font-size: 0.8rem; background: #e2e8f0; color: #475569; padding: 0.25rem 0.6rem; border-radius: 6px; font-weight: 700; text-transform: uppercase;">ID: #${issue.id}</span>
+                    <h1 style="font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-top: 0.5rem; line-height: 1.2;">${escapeHtml(issue.title)}</h1>
+                </div>
+                <span class="status-badge ${statusBadgeClass}" style="font-size: 0.9rem; padding: 0.4rem 1rem;">${escapeHtml(issue.status_name)}</span>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.5rem;">Detailed Description</h3>
+            <p style="color: #475569; line-height: 1.6; font-size: 0.98rem; background: #f8fafc; padding: 1.25rem; border-radius: 12px; border: 1px solid #edf2f7; white-space: pre-wrap;">${escapeHtml(issue.description)}</p>
+        </div>
+
+        <!-- Before / After Photo Comparison Grid -->
+        <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Before & After Comparison</h3>
+        <div class="comparison-grid">
+            <div class="proof-box">
+                <div class="proof-title">🚨 Before (Citizen Proof)</div>
+                ${beforePhotosHtml}
+            </div>
+            <div class="proof-box">
+                <div class="proof-title">✅ After (Worker Resolution Proof)</div>
+                ${afterPhotosHtml}
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Metadata & Assignment</h3>
+                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Reported By:</span><strong style="color: #1e293b;">${escapeHtml(issue.reported_by)}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Submitted:</span><strong style="color: #1e293b;">${issue.time_ago}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Area/Union:</span><strong style="color: #1e293b;">📍 ${escapeHtml(issue.area_name)}</strong></div>
+                    <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Upvotes:</span><strong style="color: #1e293b;">👍 ${issue.upvote_count} upvotes</strong></div>
+                    <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; margin-top: 0.25rem;"><span style="color: #64748b;">Assigned Worker:</span><strong style="color: #3b82f6;">${escapeHtml(issue.assigned_worker_name)}</strong></div>
+                </div>
+            </div>
+            <div>
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Timeline Audit Log</h3>
+                <div class="audit-timeline">
+                    ${timelineHtml}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Display body
+    loading.style.display = 'none';
+    body.style.display = 'block';
+}
+
 window.handleAreaFormSubmit = handleAreaFormSubmit;
 window.deleteGeographicArea = deleteGeographicArea;
+window.showIssueDetails = showIssueDetails;
 

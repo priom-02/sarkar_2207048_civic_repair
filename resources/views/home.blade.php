@@ -16,14 +16,14 @@
         }
 
         :root {
-            --primary: #3182ce;
-            --primary-glow: rgba(49, 130, 206, 0.35);
-            --secondary: #06b6d4;
-            --bg-dark: #070b13;
-            --text-light: #f8fafc;
-            --text-gray: #94a3b8;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
+            --primary: #0d9488; /* Spruce Teal */
+            --primary-glow: rgba(13, 148, 136, 0.15);
+            --secondary: #d97706; /* Amber Gold Accent */
+            --bg-dark: #f8fafc; /* Clean Light Slate Background */
+            --text-light: #0f172a; /* Slate 900 Main Text */
+            --text-gray: #475569; /* Slate 600 Muted Text */
+            --glass-bg: #ffffff;
+            --glass-border: rgba(0, 0, 0, 0.08);
         }
 
         body {
@@ -41,7 +41,7 @@
             position: absolute;
             width: 700px;
             height: 700px;
-            background: radial-gradient(circle, rgba(49, 130, 206, 0.18) 0%, rgba(7, 11, 19, 0) 70%);
+            background: radial-gradient(circle, rgba(13, 148, 136, 0.08) 0%, rgba(248, 250, 252, 0) 70%);
             top: -10%;
             left: -10%;
             pointer-events: none;
@@ -53,7 +53,7 @@
             position: absolute;
             width: 800px;
             height: 800px;
-            background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, rgba(7, 11, 19, 0) 70%);
+            background: radial-gradient(circle, rgba(217, 119, 6, 0.05) 0%, rgba(248, 250, 252, 0) 70%);
             top: 40%;
             right: -20%;
             pointer-events: none;
@@ -73,7 +73,7 @@
 
         /* Navigation */
         nav {
-            background: rgba(7, 11, 19, 0.7);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
@@ -114,13 +114,13 @@
         .logo-text {
             font-size: 1.6rem;
             font-weight: 800;
-            color: white;
+            color: #0f172a;
             letter-spacing: -0.04em;
             text-transform: lowercase;
         }
 
         .logo-text-accent {
-            color: var(--secondary);
+            color: var(--primary);
         }
 
         .nav-links {
@@ -133,13 +133,13 @@
         .nav-links a {
             text-decoration: none;
             color: var(--text-gray);
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.95rem;
             transition: color 0.3s;
         }
 
         .nav-links a:hover {
-            color: white;
+            color: var(--primary);
         }
 
         .auth-buttons {
@@ -151,8 +151,8 @@
         .btn-login {
             padding: 0.65rem 1.4rem;
             border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.03);
-            color: white;
+            background: rgba(0,0,0,0.02);
+            color: #0f172a;
             border-radius: 10px;
             cursor: pointer;
             font-weight: 600;
@@ -162,8 +162,8 @@
         }
 
         .btn-login:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: rgba(255,255,255,0.3);
+            background: rgba(0,0,0,0.06);
+            border-color: rgba(0,0,0,0.15);
         }
 
         .btn-signup {
@@ -182,7 +182,7 @@
 
         .btn-signup:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(49, 130, 206, 0.5);
+            box-shadow: 0 8px 20px rgba(13, 148, 136, 0.3);
         }
 
         /* Hero Section */
@@ -202,13 +202,13 @@
             text-align: left;
         }
 
-        .hero h1 {
+         .hero h1 {
             font-size: 3.8rem;
             font-weight: 800;
             line-height: 1.1;
             margin-bottom: 1.5rem;
             letter-spacing: -0.04em;
-            background: linear-gradient(to right, #ffffff, #93c5fd, #22d3ee);
+            background: linear-gradient(to right, #0f172a, #0d9488, #d97706);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -239,14 +239,14 @@
 
         .btn-hero-primary:hover {
             transform: translateY(-3px);
-            box-shadow: 0 8px 30px rgba(49, 130, 206, 0.6);
+            box-shadow: 0 8px 30px rgba(13, 148, 136, 0.4);
         }
 
         .btn-hero-secondary {
             padding: 0.9rem 2rem;
             border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.02);
-            color: white;
+            background: rgba(0,0,0,0.02);
+            color: #0f172a;
             border-radius: 12px;
             font-weight: 700;
             font-size: 1rem;
@@ -255,8 +255,8 @@
         }
 
         .btn-hero-secondary:hover {
-            background: rgba(255,255,255,0.08);
-            border-color: rgba(255,255,255,0.25);
+            background: rgba(0,0,0,0.05);
+            border-color: rgba(0,0,0,0.15);
         }
 
         /* Mockup Panel styling */
@@ -268,13 +268,11 @@
         }
 
         .monitor-mockup {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 24px;
             padding: 2rem;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.1);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.06);
             width: 100%;
             max-width: 440px;
             animation: float 6s ease-in-out infinite;
@@ -283,7 +281,7 @@
         /* Features Section (Bento Grid) */
         .features {
             padding: 7rem 2rem;
-            background: rgba(255, 255, 255, 0.01);
+            background: #ffffff;
             border-top: 1px solid var(--glass-border);
             position: relative;
             z-index: 10;
@@ -304,7 +302,7 @@
             font-weight: 800;
             letter-spacing: -0.03em;
             margin-bottom: 1rem;
-            background: linear-gradient(to right, white, #e2e8f0);
+            background: linear-gradient(to right, #0f172a, #334155);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -323,8 +321,8 @@
         }
 
         .bento-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 20px;
             padding: 2.5rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -334,6 +332,7 @@
             flex-direction: column;
             justify-content: flex-end;
             min-height: 250px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
         .bento-card::before {
@@ -343,15 +342,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(180deg, rgba(7, 11, 19, 0) 40%, rgba(7, 11, 19, 0.8) 100%);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0) 40%, rgba(255, 255, 255, 0.85) 100%);
             z-index: 1;
         }
 
         .bento-card:hover {
             transform: translateY(-5px);
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(49, 130, 206, 0.3);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            border-color: rgba(13, 148, 136, 0.35);
+            box-shadow: 0 15px 35px rgba(13, 148, 136, 0.1);
         }
 
         .bento-card.wide {
@@ -372,7 +370,7 @@
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            color: white;
+            color: #0f172a;
         }
 
         .bento-card p {
@@ -390,10 +388,10 @@
             text-transform: uppercase;
             letter-spacing: 0.05em;
             padding: 0.3rem 0.75rem;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.05);
+            border: 1px solid rgba(0,0,0,0.08);
             border-radius: 9999px;
-            color: white;
+            color: #0f172a;
             z-index: 10;
         }
 
@@ -420,16 +418,17 @@
 
         .step-item {
             position: relative;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255,255,255,0.05);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             padding: 2.5rem 2rem;
             border-radius: 20px;
             transition: all 0.3s;
         }
 
         .step-item:hover {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(6, 182, 212, 0.2);
+            background: #ffffff;
+            border-color: rgba(217, 119, 6, 0.35);
+            box-shadow: 0 10px 25px rgba(217, 119, 6, 0.08);
         }
 
         .step-badge {
@@ -444,14 +443,14 @@
             font-weight: 800;
             color: white;
             margin-bottom: 1.75rem;
-            box-shadow: 0 4px 15px rgba(49, 130, 206, 0.3);
+            box-shadow: 0 4px 15px rgba(13, 148, 136, 0.3);
         }
 
         .step-item h3 {
             font-size: 1.25rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            color: white;
+            color: #0f172a;
         }
 
         .step-item p {
@@ -463,7 +462,7 @@
         /* User Roles / For Everyone Section */
         .roles {
             padding: 7rem 2rem;
-            background: rgba(255,255,255,0.01);
+            background: #ffffff;
             border-top: 1px solid var(--glass-border);
             position: relative;
             z-index: 10;
@@ -482,8 +481,8 @@
         }
 
         .role-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: #ffffff;
+            border: 1px solid rgba(0, 0, 0, 0.08);
             border-radius: 24px;
             padding: 3rem 2.5rem;
             text-align: center;
@@ -491,41 +490,42 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
         .role-card:hover {
             transform: scale(1.02);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            background: #ffffff;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         }
 
-        .role-card.citizen:hover { border-color: rgba(6, 182, 212, 0.4); }
-        .role-card.worker:hover { border-color: rgba(49, 130, 206, 0.4); }
-        .role-card.admin:hover { border-color: rgba(139, 92, 246, 0.4); }
+        .role-card.citizen:hover { border-color: rgba(217, 119, 6, 0.35); }
+        .role-card.worker:hover { border-color: rgba(13, 148, 136, 0.35); }
+        .role-card.admin:hover { border-color: rgba(217, 119, 6, 0.35); }
 
         .role-icon-placeholder {
             width: 70px;
             height: 70px;
             border-radius: 18px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(0,0,0,0.02);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 1.75rem;
             margin-bottom: 1.5rem;
-            color: white;
-            border: 1px solid rgba(255,255,255,0.1);
+            color: #0f172a;
+            border: 1px solid rgba(0,0,0,0.08);
         }
 
-        .role-card.citizen .role-icon-placeholder { background: rgba(6, 182, 212, 0.1); border-color: rgba(6, 182, 212, 0.2); color: #22d3ee; }
-        .role-card.worker .role-icon-placeholder { background: rgba(49, 130, 206, 0.1); border-color: rgba(49, 130, 206, 0.2); color: #60a5fa; }
-        .role-card.admin .role-icon-placeholder { background: rgba(139, 92, 246, 0.1); border-color: rgba(139, 92, 246, 0.2); color: #c084fc; }
+        .role-card.citizen .role-icon-placeholder { background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.2); color: var(--secondary); }
+        .role-card.worker .role-icon-placeholder { background: rgba(13, 148, 136, 0.08); border-color: rgba(13, 148, 136, 0.2); color: var(--primary); }
+        .role-card.admin .role-icon-placeholder { background: rgba(217, 119, 6, 0.08); border-color: rgba(217, 119, 6, 0.2); color: var(--secondary); }
 
         .role-card h3 {
             font-size: 1.4rem;
             font-weight: 700;
             margin-bottom: 0.75rem;
-            color: white;
+            color: #0f172a;
         }
 
         .role-card p {
@@ -538,7 +538,7 @@
 
         /* CTA Section */
         .cta {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 13, 22, 0.95) 100%);
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
             border-top: 1px solid var(--glass-border);
             padding: 6rem 2rem;
             text-align: center;
@@ -556,9 +556,7 @@
             font-weight: 800;
             letter-spacing: -0.04em;
             margin-bottom: 1.5rem;
-            background: linear-gradient(to right, white, #cbd5e1);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: white;
         }
 
         .cta p {
@@ -644,8 +642,8 @@
                 <div class="logo-icon-container">
                     <svg class="custom-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                         <!-- Document sheet -->
-                        <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" />
+                        <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#10b981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#10b981" stroke-width="7" stroke-linecap="round" />
                         <!-- Lines on document -->
                         <line x1="61" y1="58" x2="76" y2="58" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
                         <line x1="61" y1="66" x2="76" y2="66" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
@@ -653,15 +651,14 @@
                         <!-- Speech bubble -->
                         <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
                         <!-- Buildings inside speech bubble -->
-                        <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#4299e1" />
-                        <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#3182ce" />
-                        <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#2b6cb0" />
+                        <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#34d399" />
+                        <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#10b981" />
+                        <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#047857" />
                     </svg>
                 </div>
                 <span class="logo-text">civic <span class="logo-text-accent">report</span></span>
             </a>
             <ul class="nav-links">
-                <li><a href="#features">Features</a></li>
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#user-types">For You</a></li>
             </ul>
@@ -679,91 +676,43 @@
             <p>Report local infrastructure issues, upvote resident complaints, track worker order assignments, and build a safer, cleaner community together.</p>
             <div class="hero-buttons">
                 <a href="{{ route('register') }}" class="btn-hero-primary">Start Reporting Now</a>
-                <a href="#features" class="btn-hero-secondary">Explore Features</a>
+                <a href="#how-it-works" class="btn-hero-secondary">How It Works</a>
             </div>
         </div>
 
         <div class="hero-visual">
             <!-- Simulated Live Platform Monitor Panel -->
             <div class="monitor-mockup">
-                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(0,0,0,0.08); padding-bottom: 1rem; margin-bottom: 1.5rem;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="width: 10px; height: 10px; background: #10b981; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px #10b981; animation: pulse 2s infinite;"></span>
-                        <span style="font-weight: 700; font-size: 0.85rem; color: white; text-transform: uppercase; letter-spacing: 0.05em;">Live City Monitor</span>
+                        <span style="width: 10px; height: 10px; background: #0d9488; border-radius: 50%; display: inline-block; box-shadow: 0 0 10px rgba(13, 148, 136, 0.5); animation: pulse 2s infinite;"></span>
+                        <span style="font-weight: 700; font-size: 0.85rem; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em;">Live City Monitor</span>
                     </div>
-                    <span style="background: rgba(16, 185, 129, 0.15); color: #34d399; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid rgba(16, 185, 129, 0.25);">ACTIVE</span>
+                    <span style="background: rgba(13, 148, 136, 0.1); color: #0d9488; font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid rgba(13, 148, 136, 0.2);">ACTIVE</span>
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem;">
+                    <div style="background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 1rem;">
                         <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">📈</span>
-                        <span style="font-size: 1.25rem; font-weight: 800; color: white; display: block;">94.2%</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">94.2%</span>
                         <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Resolution Rate</span>
                     </div>
-                    <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 1rem;">
+                    <div style="background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 1rem;">
                         <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">⚡</span>
-                        <span style="font-size: 1.25rem; font-weight: 800; color: white; display: block;">&lt; 2.4h</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">&lt; 2.4h</span>
                         <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Avg Response</span>
                     </div>
                 </div>
                 <div>
-                    <div style="font-size: 0.75rem; font-weight: 700; color: #cbd5e1; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">Live Feed Activity</div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">Live Feed Activity</div>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
                         <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
                             <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">Just now</span>
-                            <span style="color: #e2e8f0; font-weight: 500;">📢 Dhanmondi road repairs scheduled</span>
+                            <span style="color: #334155; font-weight: 600;">📢 Dhanmondi road repairs scheduled</span>
                         </div>
                         <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
                             <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">12m ago</span>
-                            <span style="color: #e2e8f0; font-weight: 500;">✅ Mirpur street light issue resolved</span>
+                            <span style="color: #334155; font-weight: 600;">✅ Mirpur street light issue resolved</span>
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Bento Grid Features Section -->
-    <section class="features" id="features">
-        <div class="features-container">
-            <div class="section-header">
-                <h2 class="section-title">Features Designed for Impact</h2>
-                <p class="section-subtitle">A state-of-the-art framework built to keep community governance fast, visual, and transparent.</p>
-            </div>
-
-            <div class="bento-grid">
-                <!-- Bento Card 1 -->
-                <div class="bento-card wide">
-                    <span class="bento-badge">Operational</span>
-                    <div class="bento-content">
-                        <h3>Easy Citizen Reporting</h3>
-                        <p>Citizens can upload descriptions and photo evidence of potholes, broken street lights, or clogged drains instantly, mapping them with precise coordinates.</p>
-                    </div>
-                </div>
-
-                <!-- Bento Card 2 -->
-                <div class="bento-card tall">
-                    <span class="bento-badge">Algorithmic</span>
-                    <div class="bento-content">
-                        <h3>Democracy-driven Priority</h3>
-                        <p>Resident upvotes dynamically raise the urgency weight of local complaints, highlighting community hotspots immediately for dispatch on the admin maps dashboard.</p>
-                    </div>
-                </div>
-
-                <!-- Bento Card 3 -->
-                <div class="bento-card">
-                    <span class="bento-badge">Real-time</span>
-                    <div class="bento-content">
-                        <h3>Timeline Logs</h3>
-                        <p>Track your reported issue's timeline from Pending to Work Order Dispatched to Completed.</p>
-                    </div>
-                </div>
-
-                <!-- Bento Card 4 -->
-                <div class="bento-card">
-                    <span class="bento-badge">Security</span>
-                    <div class="bento-content">
-                        <h3>Sanitization & Safety</h3>
-                        <p>Fully secure middleware routing prevents cross-site scripting (XSS) and controls access levels.</p>
                     </div>
                 </div>
             </div>

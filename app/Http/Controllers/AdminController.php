@@ -129,11 +129,41 @@ class AdminController extends Controller
      */
     public function getIssues(): JsonResponse
     {
-        $issues = Issue::with(['category', 'area', 'status', 'reportedBy', 'assignments', 'assignments.worker'])
+        $issues = Issue::with([
+            'category', 
+            'area', 
+            'status', 
+            'reportedBy', 
+            'assignments', 
+            'assignments.worker', 
+            'media.uploadedBy', 
+            'statusHistory.oldStatus', 
+            'statusHistory.newStatus', 
+            'statusHistory.changedBy'
+        ])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($issue) {
                 $assignedWorker = $issue->assignments->first();
+                
+                $media = $issue->media->map(function ($m) {
+                    return [
+                        'url' => $m->file_url,
+                        'media_type' => $m->media_type,
+                        'uploaded_by_role' => $m->uploadedBy->role_id ?? 1
+                    ];
+                });
+
+                $history = $issue->statusHistory->map(function ($h) {
+                    return [
+                        'time' => $h->created_at->diffForHumans(),
+                        'old_status' => $h->oldStatus->status_name ?? 'Pending',
+                        'new_status' => $h->newStatus->status_name ?? 'Pending',
+                        'remark' => $h->remark ?? '',
+                        'user_name' => $h->changedBy->full_name ?? 'System'
+                    ];
+                });
+
                 return [
                     'id' => $issue->id,
                     'title' => $issue->title,
@@ -146,7 +176,9 @@ class AdminController extends Controller
                     'assigned_worker_id' => $assignedWorker ? $assignedWorker->worker_id : null,
                     'assigned_worker_name' => $assignedWorker && $assignedWorker->worker ? $assignedWorker->worker->full_name : 'Unassigned',
                     'upvote_count' => $issue->upvote_count,
-                    'time_ago' => $issue->created_at->diffForHumans()
+                    'time_ago' => $issue->created_at->diffForHumans(),
+                    'media' => $media,
+                    'history' => $history
                 ];
             });
 
@@ -160,8 +192,13 @@ class AdminController extends Controller
     {
         $workers = User::where('role_id', 2)
             ->where('is_active', true)
+            ->withCount(['assignments as active_caseload' => function ($query) {
+                $query->whereHas('issue', function ($q) {
+                    $q->whereNotIn('status_id', [5, 6, 7]);
+                });
+            }])
             ->orderBy('full_name', 'asc')
-            ->get(['id', 'full_name']);
+            ->get(['id', 'full_name', 'active_caseload']);
 
         return response()->json($workers);
     }

@@ -299,6 +299,8 @@ class CitizenController extends Controller
             'time_ago' => $issue->created_at->diffForHumans(),
             'latitude' => $issue->latitude,
             'longitude' => $issue->longitude,
+            'status_id' => $issue->status_id,
+            'is_own_report' => ($issue->reported_by === $userId),
         ];
 
         return response()->json($details);
@@ -335,6 +337,84 @@ class CitizenController extends Controller
             'success' => true,
             'message' => 'Comment added successfully!',
             'comment' => $responseComment
+        ]);
+    }
+
+    /**
+     * Submit feedback and close or reopen the issue.
+     */
+    public function submitFeedback(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'nullable|string',
+            'action' => 'required|string|in:satisfied,reopen',
+        ]);
+
+        $issue = Issue::findOrFail($id);
+
+        // Security check: Only the citizen who reported the issue can review it
+        if ($issue->reported_by !== Auth::id()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized action.'
+            ], 403);
+        }
+
+        // Only resolved issues can be reviewed
+        if ($issue->status_id !== 5) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only resolved complaints can be reviewed.'
+            ], 422);
+        }
+
+        $oldStatusId = $issue->status_id;
+        
+        // Save feedback
+        \App\Models\IssueFeedback::create([
+            'issue_id' => $issue->id,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+            'submitted_by' => Auth::id(),
+        ]);
+
+        if ($request->action === 'satisfied') {
+            // Close the ticket (status 6)
+            $newStatusId = 6;
+            $remark = "Citizen is satisfied. Rating: {$request->rating}/5. " . ($request->comment ?: 'No feedback comments provided.');
+        } else {
+            // Re-open ticket back to In Progress (status 3)
+            $newStatusId = 3;
+            $remark = "Citizen re-opened complaint. Rating: {$request->rating}/5. Reopen Reason: " . ($request->comment ?: 'No comments.');
+        }
+
+        $issue->status_id = $newStatusId;
+        $issue->save();
+
+        // Write status history log
+        \App\Models\StatusHistory::create([
+            'issue_id' => $issue->id,
+            'old_status_id' => $oldStatusId,
+            'new_status_id' => $newStatusId,
+            'changed_by' => Auth::id(),
+            'remark' => $remark,
+        ]);
+
+        // Send notification to worker if reopen and worker is assigned
+        $assignment = $issue->assignments->first();
+        if ($newStatusId === 3 && $assignment) {
+            \App\Models\Notification::create([
+                'user_id' => $assignment->worker_id,
+                'issue_id' => $issue->id,
+                'message' => 'A resolved issue has been re-opened by the citizen: "' . $issue->title . '". Please review feedback.',
+                'is_read' => false,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => $newStatusId === 6 ? 'Feedback submitted! Ticket has been closed successfully.' : 'Complaint has been re-opened for further work.'
         ]);
     }
 }

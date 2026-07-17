@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Civic Reporting - Empower Your Neighborhood</title>
-    <link rel="stylesheet" href="{{ asset('css/citizen.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/citizen.css') }}?v={{ time() }}">
     <!-- Leaflet Mapping Library CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -174,7 +174,7 @@
             <div class="myspace-grid" style="display: grid; grid-template-columns: 1fr 2.2fr; gap: 2.5rem; margin-top: 2rem;">
                 <!-- Profile details -->
                 <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; display: flex; flex-direction: column; gap: 1.25rem;">
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f2d59; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Profile Details</h3>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Profile Details</h3>
                     <div>
                         <span style="font-size: 0.8rem; color: #718096; font-weight: 600; text-transform: uppercase; display: block; letter-spacing: 0.05em;">Full Name</span>
                         <span style="font-size: 1.1rem; font-weight: 700; color: #2d3748;">{{ auth()->user()->full_name }}</span>
@@ -199,7 +199,7 @@
 
                 <!-- My Reports Table -->
                 <div style="background: white; border-radius: 16px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #edf2f7; display: flex; flex-direction: column; gap: 1.5rem;">
-                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f2d59; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Reported Issues</h3>
+                    <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; border-bottom: 2px solid #edf2f7; padding-bottom: 0.75rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">My Reported Issues</h3>
                     
                     <div style="overflow-x: auto;">
                         <table style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -340,6 +340,33 @@
                         <label class="modal-label" style="margin-top: 1.5rem;">Photos & Evidence</label>
                         <div id="detailMediaGallery" class="issue-media-gallery">
                             <!-- Photos loaded dynamically -->
+                        </div>
+
+                        <!-- Feedback Panel (Only shows if own report is resolved) -->
+                        <div id="feedbackSection" style="display: none; margin-top: 2rem; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 1.25rem;">
+                            <h3 style="font-size: 1.1rem; color: #166534; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">🌟 Review Ticket Resolution</h3>
+                            <p style="font-size: 0.88rem; color: #1e3a1e; margin-bottom: 1rem; line-height: 1.4;">The worker has marked this ticket as resolved. Please review and let us know if you are satisfied, or if you need to reopen the issue.</p>
+                            
+                            <form id="feedbackForm" onsubmit="handleFeedbackSubmit(event)">
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #166534; margin-bottom: 0.25rem;">Rating:</label>
+                                    <select id="feedbackRating" style="width: 100%; padding: 0.5rem; border: 1px solid #86efac; border-radius: 6px; font-weight: 600;">
+                                        <option value="5">⭐⭐⭐⭐⭐ (Excellent)</option>
+                                        <option value="4">⭐⭐⭐⭐ (Good)</option>
+                                        <option value="3">⭐⭐⭐ (Average)</option>
+                                        <option value="2">⭐⭐ (Poor)</option>
+                                        <option value="1">⭐ (Very Unsatisfied)</option>
+                                    </select>
+                                </div>
+                                <div style="margin-bottom: 1rem;">
+                                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #166534; margin-bottom: 0.25rem;">Comment / Reopen Reason:</label>
+                                    <textarea id="feedbackComment" placeholder="Explain your experience or why you are reopening..." rows="3" style="width: 100%; padding: 0.5rem; border: 1px solid #86efac; border-radius: 6px; resize: vertical;"></textarea>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem;">
+                                    <button type="submit" onclick="submitFeedbackAction('satisfied')" class="btn btn-primary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; background: #16a34a; border-color: #16a34a;">I am Satisfied (Close Ticket)</button>
+                                    <button type="submit" onclick="submitFeedbackAction('reopen')" class="btn btn-secondary" style="flex: 1; padding: 0.6rem; font-size: 0.85rem; background: #dc2626; border-color: #dc2626; color: white;">Re-open Ticket</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                     <div class="overview-right">

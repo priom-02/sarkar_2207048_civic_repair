@@ -6,6 +6,156 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Admin Dashboard - CivicReport</title>
     <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    <style>
+        .details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            padding: 1rem;
+        }
+        .details-modal.active {
+            display: flex;
+        }
+        .details-modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 850px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 2.25rem;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            position: relative;
+            animation: modalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes modalSlideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .details-modal-close {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.5rem;
+            font-size: 2.25rem;
+            color: #94a3b8;
+            border: none;
+            background: none;
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.2s;
+        }
+        .details-modal-close:hover {
+            color: #ef4444;
+        }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+        @media (max-width: 640px) {
+            .comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .proof-box {
+            background: #f8fafc;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .proof-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+        .proof-img {
+            width: 100%;
+            height: 240px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #cbd5e1;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .proof-img:hover {
+            transform: scale(1.015);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .no-proof {
+            height: 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background: #f1f5f9;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            font-style: italic;
+            border-radius: 10px;
+            border: 2px dashed #cbd5e1;
+            padding: 1rem;
+        }
+        .audit-timeline {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-top: 1.25rem;
+            border-left: 2px solid #e2e8f0;
+        }
+        .audit-item {
+            position: relative;
+            margin-bottom: 1.25rem;
+        }
+        .audit-item::before {
+            content: '';
+            position: absolute;
+            left: -1.95rem;
+            top: 0.3rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3b82f6;
+            border: 3px solid white;
+            box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .audit-time {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            font-weight: 600;
+            margin-bottom: 0.15rem;
+            display: block;
+        }
+        .audit-desc {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .audit-remark {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-top: 0.35rem;
+            background: #f8fafc;
+            border-left: 3px solid #94a3b8;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 6px 6px 0;
+        }
+    </style>
     <!-- Leaflet Mapping Library CDN -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
@@ -304,6 +454,19 @@
         </main>
     </div>
 
+    <!-- Issue Details & Before/After Image Comparison Modal -->
+    <div class="details-modal" id="issueDetailsModal">
+        <div class="details-modal-content">
+            <button class="details-modal-close" onclick="closeDetailsModal()">&times;</button>
+            <div id="modalDetailsLoading" style="text-align: center; padding: 3rem 0;">
+                <p style="color: #64748b; font-weight: 500; font-size: 1.1rem;">Loading ticket details...</p>
+            </div>
+            <div id="modalDetailsBody" style="display: none;">
+                <!-- Content will be populated dynamically by JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- Success Notification Banner -->
     <div class="notification-banner" id="notificationBanner">
         <div class="banner-content">
@@ -345,6 +508,14 @@
                 setTimeout(() => {
                     adminMap.invalidateSize();
                 }, 150);
+            }
+        }
+
+        function closeDetailsModal() {
+            const modal = document.getElementById('issueDetailsModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
             }
         }
     </script>

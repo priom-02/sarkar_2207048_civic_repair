@@ -24,6 +24,9 @@ Route::middleware(['auth', 'role:citizen', 'active'])->group(function () {
     Route::post('/citizen/api/issues/{id}/comments', [CitizenController::class, 'storeComment'])
         ->middleware(['sanitize', 'throttle:5,1'])
         ->name('citizen.api.issues.comments.store');
+    Route::post('/citizen/api/issues/{id}/feedback', [CitizenController::class, 'submitFeedback'])
+        ->middleware('sanitize')
+        ->name('citizen.api.issues.feedback');
 });
 
 // Worker Dashboard Routes (protected by auth, role:worker, and active check)

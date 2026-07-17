@@ -375,6 +375,15 @@ async function openDetailsModal(issueId, startTab = 'overview') {
         
         document.getElementById('detailCommentCount').textContent = data.comments.length;
         renderCommentsList(data.comments);
+
+        const feedbackSec = document.getElementById('feedbackSection');
+        if (feedbackSec) {
+            if (data.status_id === 5 && data.is_own_report) {
+                feedbackSec.style.display = 'block';
+            } else {
+                feedbackSec.style.display = 'none';
+            }
+        }
         
     } catch (error) {
         console.error('Error fetching issue details:', error);
@@ -665,7 +674,7 @@ function renderMyReportsTable(issues) {
                 </td>
                 <td style="padding: 1rem 0.5rem; font-weight: 600; color: #4a5568;">👍 ${issue.votes}</td>
                 <td style="padding: 1rem 0.5rem; text-align: right;">
-                    <button onclick="openDetailsModal(${issue.id})" style="background: #3182ce; color: white; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">View Status</button>
+                    <button onclick="openDetailsModal(${issue.id})" style="background: var(--primary-color); color: white; border: none; border-radius: 6px; padding: 0.4rem 0.8rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">View Status</button>
                 </td>
             </tr>
         `;
@@ -843,3 +852,80 @@ function initAreaCascadingSelector() {
         hiddenAreaIdInput.value = selectedAreaId;
     });
 }
+
+// =====================================
+// CITIZEN RESOLUTION FEEDBACK
+// =====================================
+
+let currentFeedbackAction = null;
+
+function submitFeedbackAction(action) {
+    currentFeedbackAction = action;
+}
+
+async function handleFeedbackSubmit(e) {
+    e.preventDefault();
+    
+    if (!currentFeedbackAction) {
+        alert('Please select whether you are satisfied or want to reopen the issue.');
+        return;
+    }
+
+    if (!currentActiveIssueId) {
+        alert('Error: No active issue.');
+        return;
+    }
+
+    const rating = document.getElementById('feedbackRating').value;
+    const comment = document.getElementById('feedbackComment').value.trim();
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+    const submitBtn = e.target.querySelector(`button[onclick*="${currentFeedbackAction}"]`);
+    const originalText = submitBtn ? submitBtn.textContent : 'Submitting...';
+    
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+    }
+
+    try {
+        const response = await fetch(`${apiBase}/citizen/api/issues/${currentActiveIssueId}/feedback`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                rating: parseInt(rating),
+                comment: comment,
+                action: currentFeedbackAction
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to submit feedback');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            alert(data.message);
+            closeModal('detailsModal');
+            document.getElementById('feedbackForm').reset();
+            fetchIssues(); // Refresh feed
+        } else {
+            alert(data.message || 'An error occurred.');
+        }
+    } catch (error) {
+        console.error('Feedback submit error:', error);
+        alert('Could not submit review. Please try again.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        }
+        currentFeedbackAction = null;
+    }
+}
+
+window.submitFeedbackAction = submitFeedbackAction;
+window.handleFeedbackSubmit = handleFeedbackSubmit;
