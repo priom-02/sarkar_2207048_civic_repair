@@ -229,7 +229,7 @@
 
                     <!-- Trends Bar Graph -->
                     <div class="trends-container">
-                        <h3>30-Day Trends Analysis</h3>
+                        <h3>7-Day Trends Analysis</h3>
                         <div class="chart-wrapper">
                             <svg class="trends-chart" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg">
                                 <!-- Axes -->
@@ -243,11 +243,11 @@
                                 <line x1="40" y1="50" x2="380" y2="50" stroke="#e0e0e0" stroke-width="1"/>
 
                                 <!-- Y-axis Labels -->
-                                <text x="5" y="255" font-size="12" fill="#666">0</text>
-                                <text x="5" y="205" font-size="12" fill="#666">25</text>
-                                <text x="5" y="155" font-size="12" fill="#666">50</text>
-                                <text x="5" y="105" font-size="12" fill="#666">75</text>
-                                <text x="5" y="55" font-size="12" fill="#666">100</text>
+                                <text x="5" y="255" font-size="12" fill="#666" id="y-label-0">0</text>
+                                <text x="5" y="205" font-size="12" fill="#666" id="y-label-1">25</text>
+                                <text x="5" y="155" font-size="12" fill="#666" id="y-label-2">50</text>
+                                <text x="5" y="105" font-size="12" fill="#666" id="y-label-3">75</text>
+                                <text x="5" y="55" font-size="12" fill="#666" id="y-label-4">100</text>
 
                                 <!-- Infrastructure Reports (Blue Bars) -->
                                 <g id="infrastructure-bars">
@@ -260,10 +260,9 @@
                                 </g>
 
                                 <!-- X-axis Labels -->
-                                <text x="50" y="270" font-size="11" fill="#666">Week 1</text>
-                                <text x="110" y="270" font-size="11" fill="#666">Week 2</text>
-                                <text x="170" y="270" font-size="11" fill="#666">Week 3</text>
-                                <text x="230" y="270" font-size="11" fill="#666">Week 4</text>
+                                <g id="chart-x-labels">
+                                    <!-- Dynamic labels will be rendered here by JavaScript -->
+                                </g>
 
                                 <!-- Title -->
                                 <text x="150" y="15" font-size="14" font-weight="bold" fill="#333">Report Categories Trend</text>
@@ -387,13 +386,14 @@
                                 <th>Email Address</th>
                                 <th>Phone Number</th>
                                 <th>Role</th>
+                                <th>NID Verification</th>
                                 <th>Account Status</th>
                                 <th>Control Action</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="6" class="loading-text">Loading platform users...</td>
+                                <td colspan="7" class="loading-text">Loading platform users...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -412,14 +412,13 @@
                             <table class="assignments-table" style="width: 100%; border-collapse: collapse;">
                                 <thead>
                                     <tr style="border-bottom: 2px solid #edf2f7; text-align: left; font-size: 0.9rem; color: #4a5568;">
-                                        <th style="padding: 0.75rem 0.5rem;">Hierarchy (Div > Dist > Upz)</th>
-                                        <th style="padding: 0.75rem 0.5rem;">Union / Ward / Village</th>
+                                        <th style="padding: 0.75rem 0.5rem;">Registered Addresses / Areas</th>
                                         <th style="padding: 0.75rem 0.5rem; text-align: right;">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="areasTableBody">
                                     <tr>
-                                        <td colspan="3" class="loading-text" style="text-align: center; padding: 2rem;">Loading geographic catalog...</td>
+                                        <td colspan="2" class="loading-text" style="text-align: center; padding: 2rem;">Loading geographic catalog...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -430,21 +429,9 @@
                     <div class="create-category-box">
                         <h3>Register New Area</h3>
                         <form id="areaCreateForm" class="category-form" onsubmit="handleAreaFormSubmit(event)">
-                            <div class="form-group" style="margin-bottom: 1rem;">
-                                <label for="areaDivisionInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Division Name *</label>
-                                <input type="text" id="areaDivisionInput" required placeholder="e.g. Dhaka" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 1rem;">
-                                <label for="areaDistrictInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">District Name *</label>
-                                <input type="text" id="areaDistrictInput" required placeholder="e.g. Dhaka" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
-                            </div>
-                            <div class="form-group" style="margin-bottom: 1rem;">
-                                <label for="areaUpazilaInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Upazila / Thana *</label>
-                                <input type="text" id="areaUpazilaInput" required placeholder="e.g. Savar" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
-                            </div>
                             <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label for="areaUnionInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Union / Ward / Village</label>
-                                <input type="text" id="areaUnionInput" placeholder="e.g. Aminbazar Union" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
+                                <label for="areaNameInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Area Address / Name *</label>
+                                <input type="text" id="areaNameInput" required placeholder="e.g. Road 4, Sector 7, Uttara" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
                             </div>
                             <button type="submit" class="btn-create-category" style="width: 100%;">Add Geographic Area</button>
                         </form>
@@ -462,6 +449,16 @@
                 <p style="color: #64748b; font-weight: 500; font-size: 1.1rem;">Loading ticket details...</p>
             </div>
             <div id="modalDetailsBody" style="display: none;">
+                <!-- Content will be populated dynamically by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- NID Verification Modal -->
+    <div class="details-modal" id="nidVerificationModal">
+        <div class="details-modal-content" style="max-width: 750px;">
+            <button class="details-modal-close" onclick="closeNidModal()">&times;</button>
+            <div id="nidModalBody">
                 <!-- Content will be populated dynamically by JavaScript -->
             </div>
         </div>
@@ -513,6 +510,14 @@
 
         function closeDetailsModal() {
             const modal = document.getElementById('issueDetailsModal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function closeNidModal() {
+            const modal = document.getElementById('nidVerificationModal');
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto';

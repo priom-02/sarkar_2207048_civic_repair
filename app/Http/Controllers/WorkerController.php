@@ -30,6 +30,9 @@ class WorkerController extends Controller
         $workerId = Auth::id();
 
         $assignments = IssueAssignment::where('worker_id', $workerId)
+            ->whereHas('issue', function ($q) {
+                $q->where('status_id', '!=', 6);
+            })
             ->with([
                 'issue', 
                 'issue.category', 
@@ -174,11 +177,67 @@ class WorkerController extends Controller
         $issue = $assignment->issue;
         $oldStatusId = $issue->status_id;
 
+        // Block updates if the issue is already resolved (5) or closed (6)
+        if ($oldStatusId === 5 || $oldStatusId === 6) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This issue has already been resolved or closed.'
+            ], 422);
+        }
+
         $request->validate([
             'status' => 'required|string|in:assigned,working,completed',
             'notes' => 'nullable|string',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
+
+        // Upload photo proof if present
+        if ($request->hasFile('photo')) {
+            if ($request->status !== 'completed') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only upload evidence photos when marking the issue as completed.'
+                ], 422);
+            }
+
+            // Check if worker photo already exists
+            $existingWorkerMedia = IssueMedia::where('issue_id', $issue->id)
+                ->whereHas('uploadedBy', function($q) {
+                    $q->where('role_id', 2); // Role 2 is worker
+                })->exists();
+
+            if ($existingWorkerMedia) {
+                // Check if reopened (old_status was 5, new_status was 3 in status_history)
+                $isReopened = StatusHistory::where('issue_id', $issue->id)
+                    ->where('old_status_id', 5)
+                    ->where('new_status_id', 3)
+                    ->exists();
+
+                if (!$isReopened) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'You cannot upload or update after evidence photos unless the citizen has reopened the complaint.'
+                    ], 422);
+                }
+
+                // Delete old worker photo(s)
+                $oldWorkerMedias = IssueMedia::where('issue_id', $issue->id)
+                    ->whereHas('uploadedBy', function($q) {
+                        $q->where('role_id', 2);
+                    })->get();
+                
+                foreach ($oldWorkerMedias as $oldMedia) {
+                    $parsedUrl = parse_url($oldMedia->file_url);
+                    if (isset($parsedUrl['path'])) {
+                        $pathParts = explode('/storage/', $parsedUrl['path']);
+                        if (count($pathParts) > 1) {
+                            \Illuminate\Support\Facades\Storage::disk('public')->delete($pathParts[1]);
+                        }
+                    }
+                    $oldMedia->delete();
+                }
+            }
+        }
 
         $statusMap = [
             'assigned' => 2,  // Acknowledged
@@ -201,7 +260,7 @@ class WorkerController extends Controller
             'remark' => $request->notes,
         ]);
 
-        // Upload photo proof if present
+        // Save the uploaded photo if present
         if ($request->hasFile('photo')) {
             $path = $request->file('photo')->store('issues', 'public');
             $url = asset('storage/' . $path);

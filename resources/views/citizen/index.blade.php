@@ -38,7 +38,6 @@
             <ul class="nav-menu">
                 <li><a href="#home" class="nav-link">Home</a></li>
                 <li><a href="#issues-feed" class="nav-link">Feed</a></li>
-                <li><a href="#leaderboard" class="nav-link">Leaderboard</a></li>
                 <li><a href="#my-reports" class="nav-link">My Reports</a></li>
                 <li><a href="#" class="nav-link btn-report">Report Issue</a></li>
                 <li class="navbar-user-profile">
@@ -156,15 +155,6 @@
         </div>
     </section>
 
-    <!-- Community Leaderboard -->
-    <section class="leaderboard" id="leaderboard">
-        <div class="container">
-            <h2 class="section-title">Community Leaders</h2>
-            <div class="leaderboard-list" id="leaderboardList">
-                <!-- Leaderboard will be loaded here by JavaScript -->
-            </div>
-        </div>
-    </section>
 
     <!-- My Space (Profile & Reports) Section -->
     <section class="leaderboard" id="my-reports" style="background: #f8fafc; border-top: 1px solid #e2e8f0; border-bottom: 1px solid #e2e8f0; padding-top: 4rem; padding-bottom: 4rem;">
@@ -251,39 +241,10 @@
                     </select>
                 </div>
 
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
-                    <div class="form-group">
-                        <label for="issueDivision" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Division *</label>
-                        <select id="issueDivision" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;">
-                            <option value="">Select Division</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="issueDistrict" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">District *</label>
-                        <select id="issueDistrict" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
-                            <option value="">Select District</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label for="issueArea" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Area Address *</label>
+                    <input type="text" id="issueArea" name="area_name" placeholder="e.g. Road 4, Sector 7, Uttara" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;">
                 </div>
-
-                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.25rem;">
-                    <div class="form-group">
-                        <label for="issueUpazila" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Upazila/Thana *</label>
-                        <select id="issueUpazila" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
-                            <option value="">Select Upazila/Thana</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="issueUnion" style="font-weight: 600; color: #1e293b; display: block; margin-bottom: 0.5rem;">Union/Ward/Village *</label>
-                        <select id="issueUnion" required style="width: 100%; padding: 0.75rem; border: 1.5px solid #cbd5e1; border-radius: 10px; font-family: inherit; font-size: 0.95rem; color: #1e293b;" disabled>
-                            <option value="">Select Union/Ward</option>
-                        </select>
-                    </div>
-                </div>
-
-                <input type="hidden" id="issueArea" name="area_id">
 
                 <input type="hidden" id="issueLat" name="latitude">
                 <input type="hidden" id="issueLng" name="longitude">

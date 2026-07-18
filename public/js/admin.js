@@ -13,6 +13,9 @@ let currentCategories = [];
 let currentWorkers = [];
 let currentIssues = [];
 
+let detailMap = null;
+let detailMarker = null;
+
 // ============================================
 // INITIALIZATION
 // ============================================
@@ -162,7 +165,8 @@ function plotHeatmapPins(locations) {
 function renderTrendsChart(trends) {
     const infraContainer = document.getElementById('infrastructure-bars');
     const sanitationContainer = document.getElementById('sanitation-bars');
-    if (!infraContainer || !sanitationContainer) return;
+    const labelsContainer = document.getElementById('chart-x-labels');
+    if (!infraContainer || !sanitationContainer || !labelsContainer) return;
     
     // Max scale calculation
     let maxCount = 1;
@@ -170,24 +174,47 @@ function renderTrendsChart(trends) {
         maxCount = Math.max(maxCount, t.infrastructure, t.sanitation);
     });
     
-    // Map week rects (Week 1 = X:50/65, Week 2 = X:110/125, etc.)
+    // Dynamically scale Y-axis labels
+    const label1 = document.getElementById('y-label-1');
+    const label2 = document.getElementById('y-label-2');
+    const label3 = document.getElementById('y-label-3');
+    const label4 = document.getElementById('y-label-4');
+    if (label1 && label2 && label3 && label4) {
+        label1.textContent = Math.round(maxCount * 0.25);
+        label2.textContent = Math.round(maxCount * 0.5);
+        label3.textContent = Math.round(maxCount * 0.75);
+        label4.textContent = maxCount;
+    }
+    
+    const stepX = 45;
+    const startX = 50;
+
     infraContainer.innerHTML = trends.map((t, idx) => {
-        const x = 50 + idx * 60;
-        const height = (t.infrastructure / maxCount) * 180 + 8; // min size 8px
-        const y = 250 - height;
+        const x = startX + idx * stepX;
+        const height = (t.infrastructure / maxCount) * 200;
+        const displayHeight = t.infrastructure > 0 ? Math.max(height, 4) : 0;
+        const y = 250 - displayHeight;
         return `
-            <rect x="${x}" y="${y}" width="12" height="${height}" fill="#4db8ff" class="trend-bar" 
-                data-week="${t.week}" data-value="${t.infrastructure}" style="cursor: pointer; opacity: 0.85; transition: opacity 0.2s;" />
+            <rect x="${x}" y="${y}" width="12" height="${displayHeight}" fill="#4db8ff" class="trend-bar" 
+                data-week="${t.label}" data-value="${t.infrastructure}" style="cursor: pointer; opacity: 0.85; transition: opacity 0.2s;" />
         `;
     }).join('');
     
     sanitationContainer.innerHTML = trends.map((t, idx) => {
-        const x = 65 + idx * 60;
-        const height = (t.sanitation / maxCount) * 180 + 8;
-        const y = 250 - height;
+        const x = startX + idx * stepX + 15;
+        const height = (t.sanitation / maxCount) * 200;
+        const displayHeight = t.sanitation > 0 ? Math.max(height, 4) : 0;
+        const y = 250 - displayHeight;
         return `
-            <rect x="${x}" y="${y}" width="12" height="${height}" fill="#ff9900" class="trend-bar" 
-                data-week="${t.week}" data-value="${t.sanitation}" style="cursor: pointer; opacity: 0.85; transition: opacity 0.2s;" />
+            <rect x="${x}" y="${y}" width="12" height="${displayHeight}" fill="#ff9900" class="trend-bar" 
+                data-week="${t.label}" data-value="${t.sanitation}" style="cursor: pointer; opacity: 0.85; transition: opacity 0.2s;" />
+        `;
+    }).join('');
+
+    labelsContainer.innerHTML = trends.map((t, idx) => {
+        const x = startX + idx * stepX + 10;
+        return `
+            <text x="${x}" y="270" font-size="11" fill="#666" text-anchor="middle">${t.label}</text>
         `;
     }).join('');
     
@@ -587,7 +614,7 @@ async function fetchUsers() {
         console.error('Error fetching users:', error);
         const tbody = document.getElementById('usersTableBody');
         if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="6" class="loading-text" style="color: #ef4444;">Error loading platform users.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" class="loading-text" style="color: #ef4444;">Error loading platform users.</td></tr>`;
         }
     }
 }
@@ -597,7 +624,7 @@ function renderUsersTable() {
     if (!tbody) return;
 
     if (currentUsers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" class="loading-text">No registered users found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="loading-text">No registered users found.</td></tr>`;
         return;
     }
 
@@ -610,6 +637,33 @@ function renderUsersTable() {
             ? `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #ef4444; border-color: #ef4444; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Deactivate</button>`
             : `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #10b981; border-color: #10b981; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Activate</button>`;
 
+        let nidCol = '<span style="color: #94a3b8; font-size: 0.9rem;">N/A</span>';
+        if (user.role_name === 'Citizen' && user.nid_number) {
+            let badgeColor = '';
+            let badgeText = '';
+            let actionBtnText = 'View';
+            
+            if (user.nid_verified === 'verified') {
+                badgeColor = 'background-color: #d1fae5; color: #065f46;';
+                badgeText = 'Verified';
+            } else if (user.nid_verified === 'rejected') {
+                badgeColor = 'background-color: #fee2e2; color: #991b1b;';
+                badgeText = 'Rejected';
+                actionBtnText = 'Review';
+            } else {
+                badgeColor = 'background-color: #fef3c7; color: #92400e;';
+                badgeText = 'Pending';
+                actionBtnText = 'Verify';
+            }
+
+            nidCol = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span class="status-badge" style="${badgeColor} padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-block;">${badgeText}</span>
+                    <button onclick="openNidModal(${user.id})" style="background-color: #0284c7; border: none; font-size: 0.75rem; padding: 0.35rem 0.7rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; transition: all 0.2s;">${actionBtnText}</button>
+                </div>
+            `;
+        }
+
         return `
             <tr>
                 <td>
@@ -619,6 +673,7 @@ function renderUsersTable() {
                 <td>${escapeHtml(user.email)}</td>
                 <td>${escapeHtml(user.phone)}</td>
                 <td style="font-weight: 500; color: #475569;">${escapeHtml(user.role_name)}</td>
+                <td>${nidCol}</td>
                 <td>${statusBadge}</td>
                 <td>${actionBtn}</td>
             </tr>
@@ -662,6 +717,87 @@ async function toggleUserStatus(userId, button) {
     }
 }
 
+function openNidModal(userId) {
+    const user = currentUsers.find(u => u.id === userId);
+    if (!user) return;
+
+    const modal = document.getElementById('nidVerificationModal');
+    const body = document.getElementById('nidModalBody');
+    if (!modal || !body) return;
+
+    body.innerHTML = `
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem;">NID Details: ${escapeHtml(user.full_name)}</h3>
+        <p style="margin-bottom: 1rem; color: #475569;"><strong>NID Number:</strong> <span style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #0d9488; padding: 0.2rem 0.5rem; background: rgba(13, 148, 136, 0.05); border-radius: 4px; border: 1px solid rgba(13, 148, 136, 0.1);">${escapeHtml(user.nid_number || 'Not Provided')}</span></p>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+            <div>
+                <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b;">FRONT SIDE PHOTO</strong>
+                ${user.nid_front_photo 
+                    ? `<a href="${user.nid_front_photo}" target="_blank"><img src="${user.nid_front_photo}" style="width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-height: 220px; object-fit: contain; background: #f8fafc;" alt="NID Front"></a>` 
+                    : `<div style="padding: 3rem 1rem; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; color: #94a3b8; background: #f8fafc;">No front photo uploaded</div>`}
+            </div>
+            <div>
+                <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b;">BACK SIDE PHOTO</strong>
+                ${user.nid_back_photo 
+                    ? `<a href="${user.nid_back_photo}" target="_blank"><img src="${user.nid_back_photo}" style="width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-height: 220px; object-fit: contain; background: #f8fafc;" alt="NID Back"></a>` 
+                    : `<div style="padding: 3rem 1rem; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; color: #94a3b8; background: #f8fafc;">No back photo uploaded</div>`}
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #edf2f7; padding-top: 1.25rem;">
+            <button onclick="verifyNid(${user.id}, 'reject', this)" style="background-color: #ef4444; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
+                ❌ Reject NID
+            </button>
+            <button onclick="verifyNid(${user.id}, 'verify', this)" style="background-color: #10b981; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
+                ✅ Verify NID
+            </button>
+        </div>
+    `;
+
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+async function verifyNid(userId, action, button) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = action === 'verify' ? 'Verifying...' : 'Rejecting...';
+
+    try {
+        const response = await fetch(`${apiBase}/admin/api/users/${userId}/verify-nid`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrfToken
+            },
+            body: JSON.stringify({
+                action: action
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to verify NID');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message || '✓ Status updated!', 'success');
+            closeNidModal();
+            fetchUsers(); // Refresh users table
+        } else {
+            showNotification(data.message || 'Error updating status', 'error');
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    } catch (error) {
+        console.error('NID verification error:', error);
+        showNotification('Could not update verification status. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = originalText;
+    }
+}
+
 // ============================================
 // GEOGRAPHIC AREAS MANAGEMENT
 // ============================================
@@ -689,19 +825,15 @@ function renderAreasTable() {
     if (!tbody) return;
 
     if (currentAreas.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="3" class="loading-text" style="text-align: center; padding: 2rem;">No registered geographic areas found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" class="loading-text" style="text-align: center; padding: 2rem;">No registered areas found.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = currentAreas.map(area => {
         return `
             <tr style="border-bottom: 1px solid #edf2f7; font-size: 0.95rem;">
-                <td style="padding: 1rem 0.5rem;">
-                    <div style="font-weight: 700; color: #1e293b;">${escapeHtml(area.division)}</div>
-                    <small style="color: #64748b; font-size: 0.8rem;">${escapeHtml(area.district)} &gt; ${escapeHtml(area.upazila)}</small>
-                </td>
-                <td style="padding: 1rem 0.5rem; font-weight: 600; color: #475569;">
-                    ${escapeHtml(area.union_parishad || 'N/A')}
+                <td style="padding: 1rem 0.5rem; font-weight: 600; color: #1e293b;">
+                    ${escapeHtml(area.area_name)}
                 </td>
                 <td style="padding: 1rem 0.5rem; text-align: right;">
                     <button onclick="deleteGeographicArea(${area.id}, this)" style="background-color: #ef4444; border: none; font-size: 0.8rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; transition: all 0.2s;">Delete</button>
@@ -714,14 +846,11 @@ function renderAreasTable() {
 async function handleAreaFormSubmit(e) {
     e.preventDefault();
     const form = e.target;
-    const division = document.getElementById('areaDivisionInput').value.trim();
-    const district = document.getElementById('areaDistrictInput').value.trim();
-    const upazila = document.getElementById('areaUpazilaInput').value.trim();
-    const union = document.getElementById('areaUnionInput').value.trim();
+    const areaName = document.getElementById('areaNameInput').value.trim();
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    if (!division || !district || !upazila) {
-        showNotification('Please fill in all required fields', 'error');
+    if (!areaName) {
+        showNotification('Please enter an area address / name', 'error');
         return;
     }
 
@@ -737,10 +866,7 @@ async function handleAreaFormSubmit(e) {
                 'X-CSRF-TOKEN': csrfToken
             },
             body: JSON.stringify({
-                division: division,
-                district: district,
-                upazila: upazila,
-                union_parishad: union
+                area_name: areaName
             })
         });
 
@@ -887,13 +1013,16 @@ async function showIssueDetails(issueId) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
             <div>
                 <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Metadata & Assignment</h3>
-                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem; margin-bottom: 1.5rem;">
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Reported By:</span><strong style="color: #1e293b;">${escapeHtml(issue.reported_by)}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Submitted:</span><strong style="color: #1e293b;">${issue.time_ago}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Area/Union:</span><strong style="color: #1e293b;">📍 ${escapeHtml(issue.area_name)}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Upvotes:</span><strong style="color: #1e293b;">👍 ${issue.upvote_count} upvotes</strong></div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; margin-top: 0.25rem;"><span style="color: #64748b;">Assigned Worker:</span><strong style="color: #3b82f6;">${escapeHtml(issue.assigned_worker_name)}</strong></div>
                 </div>
+
+                <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Issue Location Coordinates Map</h3>
+                <div id="detailMap" style="height: 220px; border-radius: 12px; border: 1px solid #edf2f7; background: #f8fafc; z-index: 1;"></div>
             </div>
             <div>
                 <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Timeline Audit Log</h3>
@@ -907,6 +1036,45 @@ async function showIssueDetails(issueId) {
     // Display body
     loading.style.display = 'none';
     body.style.display = 'block';
+
+    // Render detail map if coordinates exist
+    renderDetailMap(issue.latitude, issue.longitude, issue.title);
+}
+
+function renderDetailMap(lat, lng, title) {
+    const containerId = 'detailMap';
+
+    // Reset Leaflet instance on the DOM element if it exists
+    const container = L.DomUtil.get(containerId);
+    if (container != null) {
+        container._leaflet_id = null;
+        container.innerHTML = '';
+    }
+
+    if (!lat || !lng) {
+        const mapEl = document.getElementById(containerId);
+        if (mapEl) {
+            mapEl.innerHTML = `<p style="padding: 3.5rem 1rem; text-align: center; color: #64748b; font-style: italic; font-size: 0.95rem;">No location coordinates available for this issue.</p>`;
+        }
+        return;
+    }
+
+    setTimeout(() => {
+        try {
+            detailMap = L.map(containerId).setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(detailMap);
+
+            detailMarker = L.marker([lat, lng]).addTo(detailMap)
+                .bindPopup(`<strong style="font-family: inherit; font-size: 0.85rem;">${escapeHtml(title)}</strong>`)
+                .openPopup();
+
+            detailMap.invalidateSize();
+        } catch (err) {
+            console.error('Error rendering detail map:', err);
+        }
+    }, 200);
 }
 
 window.handleAreaFormSubmit = handleAreaFormSubmit;

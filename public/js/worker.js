@@ -10,6 +10,9 @@ let currentAssignments = [];
 let currentOrder = null;
 let selectedStatus = null;
 
+let workerDetailMapInstance = null;
+let workerDetailMarkerInstance = null;
+
 // ============================================
 // INITIALIZATION
 // ============================================
@@ -243,6 +246,9 @@ function openStatusModal(orderId, title, status) {
     currentStatusDisplay.textContent = status.charAt(0).toUpperCase() + status.slice(1);
     updateStatusBadgeColor(currentStatusDisplay, status);
     
+    // Render detail map inside the status modal
+    renderWorkerDetailMap(order.latitude, order.longitude, order.title);
+    
     // Reset form fields
     document.getElementById('progressNotes').value = '';
     
@@ -254,6 +260,16 @@ function openStatusModal(orderId, title, status) {
             <input type="file" id="photoUpload" accept="image/*" style="display: none;">
         `;
         attachPhotoListener();
+        
+        // Hide/show upload section initially based on status
+        const uploadSection = uploadArea.closest('.modal-section');
+        if (uploadSection) {
+            if (status === 'completed') {
+                uploadSection.style.display = 'block';
+            } else {
+                uploadSection.style.display = 'none';
+            }
+        }
     }
     
     // Render status logs dynamically
@@ -282,6 +298,40 @@ function openStatusModal(orderId, title, status) {
     
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+}
+
+function renderWorkerDetailMap(lat, lng, title) {
+    const containerId = 'workerDetailMap';
+    const container = L.DomUtil.get(containerId);
+    if (container != null) {
+        container._leaflet_id = null;
+        container.innerHTML = '';
+    }
+
+    if (!lat || !lng) {
+        const mapEl = document.getElementById(containerId);
+        if (mapEl) {
+            mapEl.innerHTML = `<p style="padding: 3.5rem 1rem; text-align: center; color: #64748b; font-style: italic; font-size: 0.95rem;">No location coordinates available for this issue.</p>`;
+        }
+        return;
+    }
+
+    setTimeout(() => {
+        try {
+            workerDetailMapInstance = L.map(containerId).setView([lat, lng], 15);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(workerDetailMapInstance);
+
+            workerDetailMarkerInstance = L.marker([lat, lng]).addTo(workerDetailMapInstance)
+                .bindPopup(`<strong style="font-family: inherit; font-size: 0.85rem;">${escapeHtml(title)}</strong>`)
+                .openPopup();
+
+            workerDetailMapInstance.invalidateSize();
+        } catch (err) {
+            console.error('Error rendering worker detail map:', err);
+        }
+    }, 200);
 }
 
 function closeStatusModal() {
@@ -321,6 +371,16 @@ function selectStatus(status) {
             btn.classList.add('active');
         }
     });
+
+    // Toggle photo upload section visibility
+    const uploadSection = document.querySelector('.upload-area')?.closest('.modal-section');
+    if (uploadSection) {
+        if (status === 'completed') {
+            uploadSection.style.display = 'block';
+        } else {
+            uploadSection.style.display = 'none';
+        }
+    }
 }
 
 async function submitStatusUpdate() {

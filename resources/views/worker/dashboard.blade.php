@@ -117,6 +117,11 @@
                     </div>
                 </div>
 
+                <div class="modal-section" id="workerDetailMapSection" style="margin-bottom: 1.25rem;">
+                    <label class="modal-label">Incident Location Map:</label>
+                    <div id="workerDetailMap" style="height: 180px; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8fafc; z-index: 1;"></div>
+                </div>
+
                 <div class="modal-section">
                     <label class="modal-label">Progress Notes:</label>
                     <textarea id="progressNotes" class="progress-textarea" placeholder="Add notes about the current work status, issues, or next steps..." rows="5"></textarea>

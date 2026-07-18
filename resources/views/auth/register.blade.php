@@ -59,7 +59,7 @@
                         </div>
                     @endif
 
-                    <form action="{{ route('register') }}" method="POST">
+                    <form action="{{ route('register') }}" method="POST" enctype="multipart/form-data">
                         @csrf
 
                         <div class="form-group">
@@ -108,6 +108,49 @@
                             <small>Note: Admin accounts can only be created by existing administrators.</small>
                         </div>
 
+                        <!-- NID Details for Citizens -->
+                        <div id="nid-fields-container" style="display: none; background: rgba(13, 148, 136, 0.03); padding: 1.25rem; border-radius: 12px; border: 1px dashed rgba(13, 148, 136, 0.2); margin-bottom: 1.5rem; flex-direction: column; gap: 1.25rem;">
+                            <h4 style="font-size: 0.95rem; font-weight: 700; color: #0d9488; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;">
+                                🛡️ National Identity (NID) Verification
+                            </h4>
+                            
+                            <div class="form-group" style="margin-bottom: 1rem;">
+                                <label for="nid_number" style="font-weight: 600;">NID Number *</label>
+                                <input 
+                                    type="text" 
+                                    id="nid_number" 
+                                    name="nid_number" 
+                                    placeholder="Enter your 10, 13 or 17 digit NID"
+                                >
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">NID Front Side *</label>
+                                    <div style="position: relative; border: 2px dashed rgba(13, 148, 136, 0.3); border-radius: 10px; padding: 0.75rem; text-align: center; cursor: pointer; background: white; transition: all 0.2s;" onclick="document.getElementById('nid_front_photo').click()">
+                                        <input type="file" id="nid_front_photo" name="nid_front_photo" accept="image/*" style="display: none;" onchange="previewImage(this, 'nid-front-preview', 'nid-front-preview-placeholder')">
+                                        <div id="nid-front-preview-placeholder">
+                                            <span style="font-size: 1.5rem;">📸</span>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Upload Front</div>
+                                        </div>
+                                        <img id="nid-front-preview" style="max-width: 100%; max-height: 80px; border-radius: 6px; display: none; object-fit: contain; margin: 0 auto;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label style="font-weight: 600; display: block; margin-bottom: 0.5rem;">NID Back Side *</label>
+                                    <div style="position: relative; border: 2px dashed rgba(13, 148, 136, 0.3); border-radius: 10px; padding: 0.75rem; text-align: center; cursor: pointer; background: white; transition: all 0.2s;" onclick="document.getElementById('nid_back_photo').click()">
+                                        <input type="file" id="nid_back_photo" name="nid_back_photo" accept="image/*" style="display: none;" onchange="previewImage(this, 'nid-back-preview', 'nid-back-preview-placeholder')">
+                                        <div id="nid-back-preview-placeholder">
+                                            <span style="font-size: 1.5rem;">📸</span>
+                                            <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Upload Back</div>
+                                        </div>
+                                        <img id="nid-back-preview" style="max-width: 100%; max-height: 80px; border-radius: 6px; display: none; object-fit: contain; margin: 0 auto;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label for="password">Password</label>
                             <input 
@@ -146,5 +189,51 @@
             </div>
         </div>
     </div>
+    <script>
+        function previewImage(input, previewId, placeholderId) {
+            const preview = document.getElementById(previewId);
+            const placeholder = document.getElementById(placeholderId);
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    placeholder.style.display = 'none';
+                }
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+                placeholder.style.display = 'block';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const roleSelect = document.getElementById('role_id');
+            const nidFieldsContainer = document.getElementById('nid-fields-container');
+            const nidNumber = document.getElementById('nid_number');
+            const nidFront = document.getElementById('nid_front_photo');
+            const nidBack = document.getElementById('nid_back_photo');
+
+            function toggleNidFields() {
+                // If Citizen role is selected
+                if (roleSelect.value === '1') {
+                    nidFieldsContainer.style.display = 'flex';
+                    nidNumber.required = true;
+                    nidFront.required = true;
+                    nidBack.required = true;
+                } else {
+                    nidFieldsContainer.style.display = 'none';
+                    nidNumber.required = false;
+                    nidFront.required = false;
+                    nidBack.required = false;
+                }
+            }
+
+            roleSelect.addEventListener('change', toggleNidFields);
+            // Run on initial load in case of validation errors/old inputs
+            toggleNidFields();
+        });
+    </script>
 </body>
 </html>

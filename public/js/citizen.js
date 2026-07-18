@@ -464,11 +464,11 @@ async function handleReportFormSubmit(e) {
     const title = document.getElementById('issueTitle').value.trim();
     const description = document.getElementById('issueDescription').value.trim();
     const categoryId = document.getElementById('issueCategory').value;
-    const areaId = document.getElementById('issueArea').value;
+    const areaName = document.getElementById('issueArea').value.trim();
     const photoInput = document.getElementById('issuePhoto');
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
-    if (!title || !description || !categoryId || !areaId) {
+    if (!title || !description || !categoryId || !areaName) {
         alert('Please fill in all required fields');
         return;
     }
@@ -478,7 +478,7 @@ async function handleReportFormSubmit(e) {
         formData.append('title', title);
         formData.append('description', description);
         formData.append('category_id', categoryId);
-        formData.append('area_id', areaId);
+        formData.append('area_name', areaName);
         
         const latVal = document.getElementById('issueLat').value;
         const lngVal = document.getElementById('issueLng').value;
@@ -766,91 +766,7 @@ window.locateUser = locateUser;
 // =====================================
 
 function initAreaCascadingSelector() {
-    const divisionSelect = document.getElementById('issueDivision');
-    const districtSelect = document.getElementById('issueDistrict');
-    const upazilaSelect = document.getElementById('issueUpazila');
-    const unionSelect = document.getElementById('issueUnion');
-    const hiddenAreaIdInput = document.getElementById('issueArea');
-
-    if (!divisionSelect || !window.allAreas) return;
-
-    // Extract and populate unique Divisions
-    const divisions = [...new Set(window.allAreas.map(a => a.division))].sort();
-    
-    divisionSelect.innerHTML = '<option value="">Select Division</option>' + 
-        divisions.map(div => `<option value="${escapeHtml(div)}">${escapeHtml(div)}</option>`).join('');
-
-    // Division change handler
-    divisionSelect.addEventListener('change', function() {
-        const selectedDivision = this.value;
-        
-        districtSelect.innerHTML = '<option value="">Select District</option>';
-        districtSelect.disabled = true;
-        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>';
-        upazilaSelect.disabled = true;
-        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
-        unionSelect.disabled = true;
-        hiddenAreaIdInput.value = '';
-
-        if (!selectedDivision) return;
-
-        const filteredAreas = window.allAreas.filter(a => a.division === selectedDivision);
-        const districts = [...new Set(filteredAreas.map(a => a.district))].sort();
-
-        districtSelect.innerHTML = '<option value="">Select District</option>' + 
-            districts.map(dist => `<option value="${escapeHtml(dist)}">${escapeHtml(dist)}</option>`).join('');
-        districtSelect.disabled = false;
-    });
-
-    // District change handler
-    districtSelect.addEventListener('change', function() {
-        const selectedDivision = divisionSelect.value;
-        const selectedDistrict = this.value;
-
-        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>';
-        upazilaSelect.disabled = true;
-        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
-        unionSelect.disabled = true;
-        hiddenAreaIdInput.value = '';
-
-        if (!selectedDistrict) return;
-
-        const filteredAreas = window.allAreas.filter(a => a.division === selectedDivision && a.district === selectedDistrict);
-        const upazilas = [...new Set(filteredAreas.map(a => a.upazila))].sort();
-
-        upazilaSelect.innerHTML = '<option value="">Select Upazila/Thana</option>' + 
-            upazilas.map(upz => `<option value="${escapeHtml(upz)}">${escapeHtml(upz)}</option>`).join('');
-        upazilaSelect.disabled = false;
-    });
-
-    // Upazila change handler
-    upazilaSelect.addEventListener('change', function() {
-        const selectedDivision = divisionSelect.value;
-        const selectedDistrict = districtSelect.value;
-        const selectedUpazila = this.value;
-
-        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>';
-        unionSelect.disabled = true;
-        hiddenAreaIdInput.value = '';
-
-        if (!selectedUpazila) return;
-
-        const filteredAreas = window.allAreas.filter(a => 
-            a.division === selectedDivision && 
-            a.district === selectedDistrict && 
-            a.upazila === selectedUpazila
-        );
-
-        unionSelect.innerHTML = '<option value="">Select Union/Ward</option>' + 
-            filteredAreas.map(area => `<option value="${area.id}">${escapeHtml(area.union_parishad || area.area_name)}</option>`).join('');
-        unionSelect.disabled = false;
-    });
-
-    // Union change handler (sets final area_id)
-    unionSelect.addEventListener('change', function() {
-        const selectedAreaId = this.value;
-        hiddenAreaIdInput.value = selectedAreaId;
-    });
+    // No dropdown population needed since it is now a direct text input.
 }
 
 // =====================================

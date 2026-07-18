@@ -52,30 +52,27 @@ class AdminController extends Controller
                 ];
             });
 
-        // 3. Calculate 30-Day Weekly Trends
-        $now = now();
-        $weeks = [
-            'Week 1' => [$now->copy()->subDays(28), $now->copy()->subDays(21)],
-            'Week 2' => [$now->copy()->subDays(21), $now->copy()->subDays(14)],
-            'Week 3' => [$now->copy()->subDays(14), $now->copy()->subDays(7)],
-            'Week 4' => [$now->copy()->subDays(7), $now],
-        ];
-
-        // Group categories into Infrastructure vs Sanitation
-        $infraIds = [1, 5, 6, 7, 9, 11]; // Road, street light, electricity, traffic, public property, footpath
-        
+        // 3. Calculate 7-Day Trends
         $trends = [];
-        foreach ($weeks as $weekName => $range) {
-            $infraCount = Issue::whereBetween('created_at', [$range[0], $range[1]])
+        $infraIds = [1, 5, 6, 7, 9, 11]; // Road, street light, electricity, etc.
+        
+        for ($i = 6; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $start = $date->copy()->startOfDay();
+            $end = $date->copy()->endOfDay();
+            
+            $dayLabel = $date->format('D'); // e.g. Mon, Tue, etc.
+            
+            $infraCount = Issue::whereBetween('created_at', [$start, $end])
                 ->whereIn('category_id', $infraIds)
                 ->count();
 
-            $sanitationCount = Issue::whereBetween('created_at', [$range[0], $range[1]])
+            $sanitationCount = Issue::whereBetween('created_at', [$start, $end])
                 ->whereNotIn('category_id', $infraIds)
                 ->count();
                 
             $trends[] = [
-                'week' => $weekName,
+                'label' => $dayLabel,
                 'infrastructure' => $infraCount,
                 'sanitation' => $sanitationCount,
             ];
@@ -136,34 +133,18 @@ class AdminController extends Controller
             'reportedBy', 
             'assignments', 
             'assignments.worker', 
+            'media', 
             'media.uploadedBy', 
+            'statusHistory', 
+            'statusHistory.changedBy', 
             'statusHistory.oldStatus', 
-            'statusHistory.newStatus', 
-            'statusHistory.changedBy'
+            'statusHistory.newStatus'
         ])
+            ->where('status_id', '!=', 6) // Exclude Closed issues
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($issue) {
                 $assignedWorker = $issue->assignments->first();
-                
-                $media = $issue->media->map(function ($m) {
-                    return [
-                        'url' => $m->file_url,
-                        'media_type' => $m->media_type,
-                        'uploaded_by_role' => $m->uploadedBy->role_id ?? 1
-                    ];
-                });
-
-                $history = $issue->statusHistory->map(function ($h) {
-                    return [
-                        'time' => $h->created_at->diffForHumans(),
-                        'old_status' => $h->oldStatus->status_name ?? 'Pending',
-                        'new_status' => $h->newStatus->status_name ?? 'Pending',
-                        'remark' => $h->remark ?? '',
-                        'user_name' => $h->changedBy->full_name ?? 'System'
-                    ];
-                });
-
                 return [
                     'id' => $issue->id,
                     'title' => $issue->title,
@@ -177,8 +158,23 @@ class AdminController extends Controller
                     'assigned_worker_name' => $assignedWorker && $assignedWorker->worker ? $assignedWorker->worker->full_name : 'Unassigned',
                     'upvote_count' => $issue->upvote_count,
                     'time_ago' => $issue->created_at->diffForHumans(),
-                    'media' => $media,
-                    'history' => $history
+                    'latitude' => $issue->latitude,
+                    'longitude' => $issue->longitude,
+                    'media' => $issue->media->map(function ($m) {
+                        return [
+                            'url' => $m->file_url,
+                            'uploaded_by_role' => $m->uploadedBy->role_id ?? null,
+                        ];
+                    }),
+                    'history' => $issue->statusHistory->sortBy('created_at')->map(function ($h) {
+                        return [
+                            'time' => $h->created_at->diffForHumans(),
+                            'user_name' => $h->changedBy->full_name ?? 'System',
+                            'old_status' => $h->oldStatus->status_name ?? 'Initial',
+                            'new_status' => $h->newStatus->status_name ?? 'Pending',
+                            'remark' => $h->remark,
+                        ];
+                    })->values(),
                 ];
             });
 
@@ -192,13 +188,8 @@ class AdminController extends Controller
     {
         $workers = User::where('role_id', 2)
             ->where('is_active', true)
-            ->withCount(['assignments as active_caseload' => function ($query) {
-                $query->whereHas('issue', function ($q) {
-                    $q->whereNotIn('status_id', [5, 6, 7]);
-                });
-            }])
             ->orderBy('full_name', 'asc')
-            ->get(['id', 'full_name', 'active_caseload']);
+            ->get(['id', 'full_name']);
 
         return response()->json($workers);
     }
@@ -272,6 +263,10 @@ class AdminController extends Controller
                     'phone' => $user->phone ?? 'N/A',
                     'role_name' => $user->role->role_name ?? 'Citizen',
                     'is_active' => (bool) $user->is_active,
+                    'nid_number' => $user->nid_number,
+                    'nid_front_photo' => $user->nid_front_photo,
+                    'nid_back_photo' => $user->nid_back_photo,
+                    'nid_verified' => $user->nid_verified ?? 'pending',
                 ];
             });
 
@@ -279,13 +274,39 @@ class AdminController extends Controller
     }
 
     /**
+     * Verify or reject citizen NID registration.
+     */
+    public function verifyNid(Request $request, $id): JsonResponse
+    {
+        $request->validate([
+            'action' => 'required|string|in:verify,reject',
+        ]);
+
+        $user = User::findOrFail($id);
+        
+        if ($user->role_id != 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'NID verification is only applicable for Citizens.'
+            ], 422);
+        }
+
+        $user->nid_verified = $request->action === 'verify' ? 'verified' : 'rejected';
+        $user->save();
+
+        $statusStr = $user->nid_verified === 'verified' ? 'verified' : 'rejected';
+        return response()->json([
+            'success' => true,
+            'message' => "Citizen NID verification status updated to {$statusStr}."
+        ]);
+    }
+
+    /**
      * Toggle user is_active status.
      */
     public function toggleUserActive($id): JsonResponse
     {
-        /** @var \App\Models\User $user */
-        $user = \App\Models\User::findOrFail($id);
-
+        $user = User::findOrFail($id);
         $user->is_active = !$user->is_active;
         $user->save();
 
@@ -295,16 +316,13 @@ class AdminController extends Controller
             'message' => "User account has been successfully {$statusStr}."
         ]);
     }
+
     /**
      * Fetch all areas.
      */
     public function getAreas(): JsonResponse
     {
-        $areas = \App\Models\Area::orderBy('division')
-            ->orderBy('district')
-            ->orderBy('upazila')
-            ->orderBy('union_parishad')
-            ->get();
+        $areas = \App\Models\Area::orderBy('area_name', 'asc')->get();
         return response()->json([
             'areas' => $areas
         ]);
@@ -316,36 +334,25 @@ class AdminController extends Controller
     public function storeArea(Request $request): JsonResponse
     {
         $request->validate([
-            'division' => 'required|string|max:100',
-            'district' => 'required|string|max:100',
-            'upazila' => 'required|string|max:100',
-            'union_parishad' => 'nullable|string|max:100',
+            'area_name' => 'required|string|max:100|unique:areas,area_name',
         ]);
 
-        $division = ucwords(strtolower(trim($request->division)));
-        $district = ucwords(strtolower(trim($request->district)));
-        $upazila = ucwords(strtolower(trim($request->upazila)));
-        $union = $request->union_parishad ? ucwords(strtolower(trim($request->union_parishad))) : null;
-
-        $areaName = $upazila;
-        if ($union) {
-            $areaName .= ' ' . $union;
-        }
+        $areaName = ucwords(strtolower(trim($request->area_name)));
 
         $area = \App\Models\Area::create([
-            'division' => $division,
-            'district' => $district,
-            'upazila' => $upazila,
-            'union_parishad' => $union,
+            'division' => 'N/A',
+            'district' => 'N/A',
+            'upazila' => 'N/A',
+            'union_parishad' => null,
             'area_name' => $areaName,
-            'city' => $district,
+            'city' => 'N/A',
             'latitude_center' => 23.8103,
             'longitude_center' => 90.4125,
         ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Area created successfully!',
+            'message' => 'Area address registered successfully!',
             'area' => $area
         ]);
     }

@@ -156,11 +156,25 @@ class CitizenController extends Controller
             'title' => 'required|string|max:200',
             'description' => 'required|string',
             'category_id' => 'required|exists:issue_categories,id',
-            'area_id' => 'required|exists:areas,id',
+            'area_name' => 'required|string|max:100',
             'latitude' => 'nullable|numeric',
             'longitude' => 'nullable|numeric',
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
+
+        $areaName = ucwords(strtolower(trim($request->area_name)));
+        $area = \App\Models\Area::firstOrCreate(
+            ['area_name' => $areaName],
+            [
+                'division' => 'N/A',
+                'district' => 'N/A',
+                'upazila' => 'N/A',
+                'union_parishad' => null,
+                'city' => 'N/A',
+                'latitude_center' => 23.8103,
+                'longitude_center' => 90.4125,
+            ]
+        );
 
         $pendingStatus = IssueStatus::where('status_name', 'Pending')->first();
         $statusId = $pendingStatus ? $pendingStatus->id : 1;
@@ -170,7 +184,7 @@ class CitizenController extends Controller
             'description' => $request->description,
             'reported_by' => Auth::id(),
             'category_id' => $request->category_id,
-            'area_id' => $request->area_id,
+            'area_id' => $area->id,
             'status_id' => $statusId,
             'latitude' => $request->latitude ?? null,
             'longitude' => $request->longitude ?? null,

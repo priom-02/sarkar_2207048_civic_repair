@@ -693,26 +693,26 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.5rem;">
                     <div style="background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 1rem;">
                         <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">📈</span>
-                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">94.2%</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">{{ $resolutionRate }}%</span>
                         <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Resolution Rate</span>
                     </div>
                     <div style="background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 1rem;">
                         <span style="display: block; font-size: 1.5rem; margin-bottom: 0.25rem;">⚡</span>
-                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">&lt; 2.4h</span>
+                        <span style="font-size: 1.25rem; font-weight: 800; color: #0f172a; display: block;">{{ $avgResponseTime }}</span>
                         <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em;">Avg Response</span>
                     </div>
                 </div>
                 <div>
                     <div style="font-size: 0.75rem; font-weight: 700; color: #475569; text-transform: uppercase; margin-bottom: 0.75rem; letter-spacing: 0.05em;">Live Feed Activity</div>
                     <div style="display: flex; flex-direction: column; gap: 0.75rem;">
-                        <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
-                            <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">Just now</span>
-                            <span style="color: #334155; font-weight: 600;">📢 Dhanmondi road repairs scheduled</span>
-                        </div>
-                        <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
-                            <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">12m ago</span>
-                            <span style="color: #334155; font-weight: 600;">✅ Mirpur street light issue resolved</span>
-                        </div>
+                        @forelse($recentActivities as $activity)
+                            <div style="display: flex; gap: 0.75rem; align-items: flex-start; font-size: 0.82rem;">
+                                <span style="font-size: 0.72rem; color: var(--text-gray); font-weight: 500; min-width: 50px;">{{ $activity['time'] }}</span>
+                                <span style="color: #334155; font-weight: 600;">{{ $activity['text'] }}</span>
+                            </div>
+                        @empty
+                            <div style="font-size: 0.82rem; color: var(--text-gray); font-style: italic; padding-left: 5px;">No recent activities logged yet.</div>
+                        @endforelse
                     </div>
                 </div>
             </div>
