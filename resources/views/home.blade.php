@@ -663,8 +663,12 @@
                 <li><a href="#user-types">For You</a></li>
             </ul>
             <div class="auth-buttons">
-                <a href="{{ route('login') }}" class="btn-login">Sign In</a>
-                <a href="{{ route('register') }}" class="btn-signup">Get Started</a>
+                @auth
+                    <a href="{{ route('dashboard') }}" class="btn-signup">Go to Dashboard</a>
+                @else
+                    <a href="{{ route('login') }}" class="btn-login">Sign In</a>
+                    <a href="{{ route('register') }}" class="btn-signup">Get Started</a>
+                @endauth
             </div>
         </div>
     </nav>
@@ -761,7 +765,7 @@
                     <div class="role-icon-placeholder">👤</div>
                     <h3>Citizens Portal</h3>
                     <p>Submit complaints, upvote local reports, discuss resolutions, and track progress timelines from your personalized space.</p>
-                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Citizen</a>
+                    <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">{{ auth()->check() ? 'Go to Citizen Portal' : 'Sign In as Citizen' }}</a>
                 </div>
 
                 <!-- Role Card 2 -->
@@ -769,7 +773,7 @@
                     <div class="role-icon-placeholder">🔧</div>
                     <h3>Worker Portal</h3>
                     <p>Access assigned city work orders, navigate maps, update progress, and submit photo confirmation logs.</p>
-                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Worker</a>
+                    <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">{{ auth()->check() ? 'Go to Worker Portal' : 'Sign In as Worker' }}</a>
                 </div>
 
                 <!-- Role Card 3 -->
@@ -777,7 +781,7 @@
                     <div class="role-icon-placeholder">💼</div>
                     <h3>Admin Console</h3>
                     <p>Monitor platform statistics, manage complaint categories, dispatch workers, and suspend or activate accounts.</p>
-                    <a href="{{ route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">Sign In as Admin</a>
+                    <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="btn-signup" style="width: 100%; text-align: center;">{{ auth()->check() ? 'Go to Admin Console' : 'Sign In as Admin' }}</a>
                 </div>
             </div>
         </div>
@@ -789,8 +793,12 @@
             <h2>Ready to Improve Your Neighborhood?</h2>
             <p>Join citizens and city workers collaborating in real-time to build better, safer municipalities today.</p>
             <div class="hero-buttons">
-                <a href="{{ route('register') }}" class="btn-hero-primary">Create Your Account</a>
-                <a href="{{ route('login') }}" class="btn-hero-secondary">Sign In Here</a>
+                @auth
+                    <a href="{{ route('dashboard') }}" class="btn-hero-primary" style="width: 100%; max-width: 300px; text-align: center; margin: 0 auto;">Go to Dashboard</a>
+                @else
+                    <a href="{{ route('register') }}" class="btn-hero-primary">Create Your Account</a>
+                    <a href="{{ route('login') }}" class="btn-hero-secondary">Sign In Here</a>
+                @endauth
             </div>
         </div>
     </section>

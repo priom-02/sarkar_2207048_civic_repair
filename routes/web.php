@@ -48,6 +48,21 @@ Route::get('/', function () {
     return view('home', compact('resolutionRate', 'avgResponseTime', 'recentActivities'));
 });
 
+// Unified Dashboard Route for authenticated redirects
+Route::get('/dashboard', function () {
+    if (!auth()->check()) {
+        return redirect()->route('login');
+    }
+    $user = auth()->user();
+    if ($user->role_id == 4) {
+        return redirect()->route('admin.dashboard');
+    } elseif ($user->role_id == 2) {
+        return redirect()->route('worker.dashboard');
+    } else {
+        return redirect()->route('citizen.index');
+    }
+})->name('dashboard');
+
 // Citizen Portal Routes (protected by auth, role:citizen, and active check)
 Route::middleware(['auth', 'role:citizen', 'active'])->group(function () {
     Route::get('/citizen', [CitizenController::class, 'index'])->name('citizen.index');
