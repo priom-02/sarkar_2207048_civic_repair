@@ -90,6 +90,9 @@ class CitizenController extends Controller
             });
         }
 
+        // Exclude issues that are "Closed" (citizen satisfied) - status_id = 6
+        $query->where('status_id', '!=', 6);
+
         $userId = Auth::id();
         $issues = $query->orderBy('created_at', 'desc')->get()->map(function ($issue) use ($userId) {
             $hasVoted = $userId ? IssueVote::where('issue_id', $issue->id)->where('user_id', $userId)->exists() : false;
@@ -257,7 +260,7 @@ class CitizenController extends Controller
             'area', 
             'status', 
             'reportedBy', 
-            'media',
+            'media.uploadedBy.role',
             'statusHistory' => function ($q) {
                 $q->orderBy('created_at', 'desc');
             },
@@ -307,7 +310,12 @@ class CitizenController extends Controller
             'reported_by_initial' => strtoupper(substr($issue->reportedBy->full_name ?? 'A', 0, 1)),
             'votes' => $issue->upvote_count,
             'voted' => $hasVoted,
-            'media' => $issue->media->pluck('file_url')->toArray(),
+            'citizen_media' => $issue->media
+                ->filter(fn($m) => in_array($m->uploadedBy->role->role_name ?? '', ['citizen', 'moderator']))
+                ->pluck('file_url')->values()->toArray(),
+            'worker_media' => $issue->media
+                ->filter(fn($m) => $m->uploadedBy->role->role_name === 'worker')
+                ->pluck('file_url')->values()->toArray(),
             'history' => $mappedHistory,
             'comments' => $mappedComments,
             'time_ago' => $issue->created_at->diffForHumans(),

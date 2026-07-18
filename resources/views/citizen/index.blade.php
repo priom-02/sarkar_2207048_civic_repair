@@ -11,45 +11,114 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <div class="navbar-logo" onclick="window.location.reload()">
-                <div class="logo-icon-container">
-                    <svg class="custom-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <!-- Document sheet -->
-                        <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#3182ce" stroke-width="7" stroke-linecap="round" />
-                        <!-- Lines on document -->
-                        <line x1="61" y1="58" x2="76" y2="58" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
-                        <line x1="61" y1="66" x2="76" y2="66" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
-                        <line x1="61" y1="74" x2="76" y2="74" stroke="#0f2d59" stroke-width="6" stroke-linecap="round" />
-                        <!-- Speech bubble -->
-                        <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#0f2d59" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
-                        <!-- Buildings inside speech bubble -->
-                        <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#4299e1" />
-                        <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#3182ce" />
-                        <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#2b6cb0" />
-                    </svg>
-                </div>
-                <span class="logo-text">civic <span class="logo-text-accent">report</span></span>
-                <span class="logo-live-tag">LIVE</span>
+    <!-- Hamburger Toggle Button -->
+    <button id="citizenSidebarToggle" onclick="toggleCitizenSidebar()" aria-label="Toggle navigation" style="
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 98;
+        background: linear-gradient(135deg, #1e3a5f, #0f2d59);
+        border: none;
+        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(30,58,95,0.35);
+        transition: all 0.25s ease;
+    "
+    onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 6px 20px rgba(30,58,95,0.5)';"
+    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(30,58,95,0.35)';">
+        <span id="cham1" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+        <span id="cham2" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+        <span id="cham3" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+    </button>
+
+    <!-- Sidebar Backdrop -->
+    <div id="citizenSidebarBackdrop" onclick="closeCitizenSidebar()" style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,0.45);
+        z-index: 199;
+        backdrop-filter: blur(3px);
+    "></div>
+
+    <!-- Left Sidebar Navigation -->
+    <aside id="citizenSidebar" style="width: 260px; background: linear-gradient(180deg, #1e3a5f 0%, #0f2d59 100%); color: white; display: flex; flex-direction: column; padding: 1.75rem 1.25rem; position: fixed; top: 0; bottom: 0; left: -270px; z-index: 200; box-shadow: 4px 0 15px rgba(15, 23, 42, 0.12); border-right: 3px solid #2563eb; transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);">
+
+        <!-- Logo Section -->
+        <div style="display: flex; align-items: center; gap: 0.65rem; margin-bottom: 2rem; padding-bottom: 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.12); cursor: pointer;" onclick="window.location.reload()">
+            <div style="width: 34px; height: 34px; flex-shrink: 0;">
+                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                    <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" />
+                    <line x1="61" y1="58" x2="76" y2="58" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                    <line x1="61" y1="66" x2="76" y2="66" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                    <line x1="61" y1="74" x2="76" y2="74" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                    <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                    <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#38bdf8" />
+                    <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#0ea5e9" />
+                    <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#0284c7" />
+                </svg>
             </div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="#issues-feed" class="nav-link">Feed</a></li>
-                <li><a href="#my-reports" class="nav-link">My Reports</a></li>
-                <li><a href="#" class="nav-link btn-report">Report Issue</a></li>
-                <li class="navbar-user-profile">
-                    <span class="navbar-user-name">{{ auth()->user()->full_name }}</span>
-                    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="btn-logout">Logout</button>
-                    </form>
-                </li>
-            </ul>
+            <div>
+                <div style="font-size: 1.2rem; font-weight: 800; line-height: 1.1;">civic <span style="color: #f59e0b;">report</span></div>
+                <span style="font-size: 0.68rem; opacity: 0.8; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase;">Citizen Portal</span>
+            </div>
+            <span style="margin-left: auto; background: #ef4444; color: white; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; letter-spacing: 0.05em;">LIVE</span>
         </div>
-    </nav>
+
+        <!-- Navigation Links -->
+        <nav style="display: flex; flex-direction: column; gap: 0.35rem; flex: 1;">
+            <a href="#home" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 10px; color: white; text-decoration: none; font-weight: 600; font-size: 0.9rem; background: rgba(255,255,255,0.12); transition: all 0.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.12)'">
+                <span style="font-size: 1rem;">🏠</span> Home
+            </a>
+            <a href="#issues-feed" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 10px; color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.75)';">
+                <span style="font-size: 1rem;">📡</span> Feed
+            </a>
+            <a href="#my-reports" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 10px; color: rgba(255,255,255,0.75); text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;"
+               onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.75)';">
+                <span style="font-size: 1rem;">📋</span> My Reports
+            </a>
+            <button class="btn-report-trigger" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.9rem; border-radius: 10px; color: white; background: linear-gradient(135deg, #0d9488, #0891b2); border: none; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; width: 100%; text-align: left;"
+                    onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">
+                <span style="font-size: 1rem;">✍️</span> Report Issue
+            </button>
+        </nav>
+
+        <!-- Bottom Profile & Logout -->
+        <div style="padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.12); display: flex; flex-direction: column; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.65rem; background: rgba(255,255,255,0.07); padding: 0.65rem; border-radius: 10px;">
+                <div style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #0d9488, #0891b2); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem; flex-shrink: 0;">
+                    {{ strtoupper(substr(auth()->user()->full_name, 0, 1)) }}
+                </div>
+                <div style="overflow: hidden;">
+                    <div style="font-weight: 700; font-size: 0.85rem; color: white; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ auth()->user()->full_name }}</div>
+                    <div style="font-size: 0.7rem; color: rgba(255,255,255,0.6);">Citizen</div>
+                </div>
+            </div>
+            <form id="citizenLogoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
+                @csrf
+            </form>
+            <button type="button"
+                    onclick="document.getElementById('citizenLogoutForm').submit();"
+                    style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.2); padding: 0.65rem; border-radius: 10px; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+                    onmouseover="this.style.background='#ef4444'; this.style.color='white'; this.style.borderColor='#ef4444';"
+                    onmouseout="this.style.background='rgba(255,255,255,0.1)'; this.style.color='rgba(255,255,255,0.85)'; this.style.borderColor='rgba(255,255,255,0.2)';">
+                <span>🚪</span> Logout
+            </button>
+        </div>
+    </aside>
+
+    <!-- Page content offset wrapper -->
+    <div id="citizenMain" style="margin-left: 0; min-height: 100vh; padding-top: 4rem; transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);">
 
     <!-- Hero Section -->
     <section class="hero" id="home">
@@ -365,6 +434,37 @@
             apiBaseUrl: "{{ request()->getBaseUrl() }}"
         };
         window.allAreas = @json($areas);
+
+        // ── Citizen Sidebar Toggle ───────────────────────────────────────
+        let citizenSidebarOpen = false;
+
+        function openCitizenSidebar() {
+            citizenSidebarOpen = true;
+            document.getElementById('citizenSidebar').style.left = '0';
+            document.getElementById('citizenMain').style.marginLeft = '260px';
+            document.getElementById('citizenSidebarBackdrop').style.display = 'block';
+            document.getElementById('cham1').style.transform = 'translateY(7.5px) rotate(45deg)';
+            document.getElementById('cham2').style.opacity  = '0';
+            document.getElementById('cham3').style.transform = 'translateY(-7.5px) rotate(-45deg)';
+        }
+
+        function closeCitizenSidebar() {
+            citizenSidebarOpen = false;
+            document.getElementById('citizenSidebar').style.left = '-270px';
+            document.getElementById('citizenMain').style.marginLeft = '0';
+            document.getElementById('citizenSidebarBackdrop').style.display = 'none';
+            document.getElementById('cham1').style.transform = 'none';
+            document.getElementById('cham2').style.opacity  = '1';
+            document.getElementById('cham3').style.transform = 'none';
+        }
+
+        function toggleCitizenSidebar() {
+            if (citizenSidebarOpen) { closeCitizenSidebar(); } else { openCitizenSidebar(); }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && citizenSidebarOpen) closeCitizenSidebar();
+        });
     </script>
     <script src="{{ asset('js/citizen.js') }}"></script>
 </body>

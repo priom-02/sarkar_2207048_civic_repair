@@ -329,18 +329,51 @@ async function openDetailsModal(issueId, startTab = 'overview') {
         document.getElementById('detailTime').textContent = `🕐 ${data.time_ago}`;
         
         if (data.latitude && data.longitude) {
-            document.getElementById('detailCoordinates').textContent = `Latitude: ${data.latitude.toFixed(4)}, Longitude: ${data.longitude.toFixed(4)}`;
+            const coordEl = document.getElementById('detailCoordinates');
+            coordEl.textContent = '📍 Fetching address...';
+            // Reverse geocode using backend proxy
+            fetch(`${apiBase}/api/geocode/reverse?lat=${data.latitude}&lon=${data.longitude}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(geo => {
+                    if (geo && geo.address) {
+                        coordEl.textContent = '📍 ' + geo.address;
+                    } else {
+                        coordEl.textContent = `📍 ${parseFloat(data.latitude).toFixed(5)}, ${parseFloat(data.longitude).toFixed(5)}`;
+                    }
+                })
+                .catch(() => {
+                    coordEl.textContent = `📍 ${parseFloat(data.latitude).toFixed(5)}, ${parseFloat(data.longitude).toFixed(5)}`;
+                });
         } else {
             document.getElementById('detailCoordinates').textContent = 'No GPS coordinates recorded.';
         }
         
         const gallery = document.getElementById('detailMediaGallery');
-        if (data.media && data.media.length > 0) {
-            gallery.innerHTML = data.media.map(url => `
-                <img src="${url}" class="issue-media-item" onclick="window.open('${url}', '_blank')">
-            `).join('');
+        const citizenPhotos = data.citizen_media || [];
+        const workerPhotos = data.worker_media || [];
+
+        const photoGroupHtml = (photos) => {
+            if (photos.length === 0) {
+                return `<span style="font-size:0.88rem;color:var(--light-text);font-style:italic;">No photos available.</span>`;
+            }
+            return `<div style="display:flex;flex-wrap:wrap;gap:0.5rem;">` +
+                photos.map(url => `<img src="${url}" class="issue-media-item" onclick="window.open('${url}','_blank')" style="width:90px;height:70px;object-fit:cover;border-radius:8px;cursor:pointer;border:2px solid #e2e8f0;">`).join('') +
+                `</div>`;
+        };
+
+        if (citizenPhotos.length === 0 && workerPhotos.length === 0) {
+            gallery.innerHTML = '<span style="font-size:0.95rem;color:var(--light-text);font-style:italic;">No photos attached to this report.</span>';
         } else {
-            gallery.innerHTML = '<span style="font-size: 0.95rem; color: var(--light-text); font-style: italic;">No photos attached to this report.</span>';
+            gallery.innerHTML = `
+                <div style="margin-bottom:1rem;">
+                    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#0d9488;margin-bottom:0.4rem;">🏠 Reported by Citizen</div>
+                    ${photoGroupHtml(citizenPhotos)}
+                </div>
+                <div>
+                    <div style="font-size:0.78rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:#7c3aed;margin-bottom:0.4rem;">🔧 Resolved by Worker</div>
+                    ${photoGroupHtml(workerPhotos)}
+                </div>
+            `;
         }
         
         const timeline = document.getElementById('detailTimeline');
@@ -720,6 +753,7 @@ function initReportMap() {
             const pos = selectionMarker.getLatLng();
             document.getElementById('issueLat').value = pos.lat.toFixed(6);
             document.getElementById('issueLng').value = pos.lng.toFixed(6);
+            reverseGeocode(pos.lat, pos.lng);
         });
 
         selectionMap.on('click', function(e) {
@@ -728,6 +762,7 @@ function initReportMap() {
             selectionMarker.setLatLng([lat, lng]);
             document.getElementById('issueLat').value = lat.toFixed(6);
             document.getElementById('issueLng').value = lng.toFixed(6);
+            reverseGeocode(lat, lng);
         });
 
         selectionMap.invalidateSize();
@@ -750,6 +785,7 @@ function locateUser() {
                 selectionMap.setView([lat, lng], 15);
                 document.getElementById('issueLat').value = lat.toFixed(6);
                 document.getElementById('issueLng').value = lng.toFixed(6);
+                reverseGeocode(lat, lng);
             }
         },
         (error) => {
@@ -845,3 +881,26 @@ async function handleFeedbackSubmit(e) {
 
 window.submitFeedbackAction = submitFeedbackAction;
 window.handleFeedbackSubmit = handleFeedbackSubmit;
+
+async function reverseGeocode(lat, lng) {
+    const areaInput = document.getElementById('issueArea');
+    if (!areaInput) return;
+
+    areaInput.value = "Fetching exact address...";
+
+    try {
+        const response = await fetch(`${apiBase}/api/geocode/reverse?lat=${lat}&lon=${lng}`);
+        if (!response.ok) {
+            throw new Error('Reverse geocoding request failed');
+        }
+        const data = await response.json();
+        if (data.success && data.address) {
+            areaInput.value = data.address;
+        } else {
+            areaInput.value = "Address not found";
+        }
+    } catch (error) {
+        console.error('Error reverse geocoding coordinates:', error);
+        areaInput.value = "Unable to fetch address";
+    }
+}

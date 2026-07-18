@@ -161,37 +161,112 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
-    <div class="admin-container">
-        <!-- Header -->
-        <header class="admin-header">
-            <div class="header-content">
-                <div class="header-left">
-                    <h1 class="admin-title">Admin Control Center</h1>
-                    <p class="admin-subtitle">Executive Analytics & Platform Management</p>
+    <!-- Hamburger Toggle Button -->
+    <button id="sidebarToggle" onclick="toggleSidebar()" aria-label="Toggle navigation" style="
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 98;
+        background: linear-gradient(135deg, #0d9488, #0f766e);
+        border: none;
+        border-radius: 10px;
+        width: 44px;
+        height: 44px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(13,148,136,0.35);
+        transition: all 0.25s ease;
+    "
+    onmouseover="this.style.transform='scale(1.08)'; this.style.boxShadow='0 6px 20px rgba(13,148,136,0.5)';"
+    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 15px rgba(13,148,136,0.35)';">
+        <span class="ham-line" id="ham1" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+        <span class="ham-line" id="ham2" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+        <span class="ham-line" id="ham3" style="display:block;width:22px;height:2.5px;background:white;border-radius:2px;transition:all 0.3s ease;"></span>
+    </button>
+
+    <!-- Sidebar Backdrop (mobile overlay) -->
+    <div id="sidebarBackdrop" onclick="closeSidebar()" style="
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15,23,42,0.45);
+        z-index: 99;
+        backdrop-filter: blur(3px);
+        transition: opacity 0.3s;
+    "></div>
+
+    <div class="admin-container" style="display: flex; min-height: 100vh; background: #f8fafc;">
+        <!-- Left Sidebar Navigation -->
+        <aside class="admin-sidebar" id="adminSidebar" style="width: 280px; background: linear-gradient(180deg, #0d9488 0%, #0f766e 100%); color: white; display: flex; flex-direction: column; padding: 2rem 1.5rem; position: fixed; top: 0; bottom: 0; left: -290px; z-index: 100; box-shadow: 4px 0 15px rgba(15, 23, 42, 0.08); border-right: 4px solid #0f766e; transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);">
+            <!-- Logo Section -->
+            <div class="sidebar-logo" style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.15);">
+                <div style="width: 35px; height: 35px;">
+                    <svg class="custom-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%;">
+                        <!-- Document sheet -->
+                        <path d="M 52,32 L 72,32 C 74,32 76,34 77,35 L 85,43 C 86,44 87,46 87,48 L 87,78 C 87,81 84,84 81,84 L 52,84" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" />
+                        <path d="M 72,32 L 72,44 C 72,46 74,48 76,48 L 87,48" fill="none" stroke="#38bdf8" stroke-width="7" stroke-linecap="round" />
+                        <!-- Lines on document -->
+                        <line x1="61" y1="58" x2="76" y2="58" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="66" x2="76" y2="66" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                        <line x1="61" y1="74" x2="76" y2="74" stroke="#ffffff" stroke-width="6" stroke-linecap="round" />
+                        <!-- Speech bubble -->
+                        <path d="M 45,16 C 24,16 8,30 8,48 C 8,58 13,67 21,73 L 18,85 L 30,79 C 35,81 40,82 45,82 C 66,82 82,68 82,48 C 82,30 66,16 45,16 Z" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" />
+                        <!-- Buildings inside speech bubble -->
+                        <path d="M 21,72 L 21,53 L 29,43 L 29,72 Z" fill="#38bdf8" />
+                        <path d="M 31,72 L 31,37 L 41,26 L 41,72 Z" fill="#0ea5e9" />
+                        <path d="M 43,72 L 43,47 L 51,37 L 51,72 Z" fill="#0284c7" />
+                    </svg>
                 </div>
-                <div class="header-right">
-                    <div class="admin-user">
-                        {{ auth()->user()->full_name }}
-                    </div>
-                    <form action="{{ route('logout') }}" method="POST" style="display: inline;">
-                        @csrf
-                        <button type="submit" class="logout-btn">Logout</button>
-                    </form>
+                <div>
+                    <h1 style="font-size: 1.3rem; font-weight: 800; margin: 0; line-height: 1.2;">civic <span style="color: #f59e0b;">report</span></h1>
+                    <span style="font-size: 0.75rem; opacity: 0.85; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;">Admin Console</span>
                 </div>
             </div>
-        </header>
 
-        <!-- Tab Navigation Bar -->
-        <div style="background: white; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: center; gap: 1rem; padding: 0.75rem 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100;">
-            <button class="tab-btn active" onclick="switchTab('analytics', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #1e3c72; border-bottom: 3px solid #1e3c72; border-radius: 4px; transition: all 0.2s;">Analytics</button>
-            <button class="tab-btn" onclick="switchTab('complaints', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Complaints</button>
-            <button class="tab-btn" onclick="switchTab('categories', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Categories</button>
-            <button class="tab-btn" onclick="switchTab('users', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Users</button>
-            <button class="tab-btn" onclick="switchTab('areas', this)" style="background: none; border: none; font-family: inherit; font-size: 1.05rem; font-weight: 700; padding: 0.5rem 1.5rem; cursor: pointer; color: #64748b; border-bottom: 3px solid transparent; border-radius: 4px; transition: all 0.2s;">Areas</button>
-        </div>
+            <!-- Menu Navigation Links -->
+            <nav class="sidebar-nav" style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1;">
+                <button class="tab-btn active" onclick="switchTab('analytics', this)" style="background: rgba(255,255,255,0.15); border: none; border-radius: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 0.75rem 1rem; cursor: pointer; color: white; display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; text-align: left; width: 100%;">
+                    <span style="font-size: 1.1rem;">📊</span> Analytics
+                </button>
+                <button class="tab-btn" onclick="switchTab('complaints', this)" style="background: none; border: none; border-radius: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 0.75rem 1rem; cursor: pointer; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; text-align: left; width: 100%;">
+                    <span style="font-size: 1.1rem;">📋</span> Complaints
+                </button>
+                <button class="tab-btn" onclick="switchTab('categories', this)" style="background: none; border: none; border-radius: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 0.75rem 1rem; cursor: pointer; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; text-align: left; width: 100%;">
+                    <span style="font-size: 1.1rem;">🗂️</span> Categories
+                </button>
+                <button class="tab-btn" onclick="switchTab('users', this)" style="background: none; border: none; border-radius: 10px; font-family: inherit; font-size: 0.95rem; font-weight: 700; padding: 0.75rem 1rem; cursor: pointer; color: rgba(255,255,255,0.75); display: flex; align-items: center; gap: 0.75rem; transition: all 0.2s; text-align: left; width: 100%;">
+                    <span style="font-size: 1.1rem;">👥</span> Users
+                </button>
+            </nav>
 
-        <!-- Main Content -->
-        <main class="admin-main">
+            <!-- Bottom Profile & Logout -->
+            <div class="sidebar-footer" style="padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.15); display: flex; flex-direction: column; gap: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; background: rgba(255, 255, 255, 0.08); padding: 0.75rem; border-radius: 12px;">
+                    <div style="font-size: 1.5rem;">👤</div>
+                    <div style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        <div style="font-weight: 700; font-size: 0.9rem; color: white;">{{ auth()->user()->full_name }}</div>
+                        <div style="font-size: 0.75rem; color: rgba(255, 255, 255, 0.7);">System Admin</div>
+                    </div>
+                </div>
+                <form id="logoutForm" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+                <button type="button" 
+                        onclick="document.getElementById('logoutForm').submit();"
+                        style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(255, 255, 255, 0.25); padding: 0.75rem; border-radius: 10px; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: all 0.2s;"
+                        onmouseover="this.style.background='#ef4444'; this.style.color='white'; this.style.borderColor='#ef4444';"
+                        onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='rgba(255, 255, 255, 0.85)'; this.style.borderColor='rgba(255, 255, 255, 0.25)';">
+                    <span>🚪</span> Logout
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="admin-main" id="adminMain" style="flex: 1; margin-left: 0; padding: 4.5rem 2.5rem 2.5rem; width: 100%; min-height: 100vh; transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);">
             <!-- Executive Analytics Section -->
             <section id="analyticsSection" class="analytics-section">
                 <h2>Executive Analytics</h2>
@@ -353,7 +428,21 @@
 
             <!-- Complaint Assignment & Dispatch Board Section -->
             <section id="complaintsSection" class="assignments-section" style="display: none;">
-                <h2>Complaint Assignment & Dispatch Board</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+                    <h2 style="margin: 0; font-size: 1.5rem;">Complaint Assignment & Dispatch Board</h2>
+                    
+                    <!-- Priority Filter Dropdown -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; background: white; padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                        <label for="priorityFilter" style="font-weight: 700; color: #475569; font-size: 0.9rem;">Filter Priority:</label>
+                        <select id="priorityFilter" onchange="filterIssuesByPriority()" style="border: none; outline: none; font-weight: 600; color: #0f172a; font-size: 0.9rem; cursor: pointer;">
+                            <option value="all">All Priorities</option>
+                            <option value="High">🔴 High Priority (40+ votes)</option>
+                            <option value="Medium">🟡 Medium Priority (20+ votes)</option>
+                            <option value="Low">🟢 Low Priority (&lt;20 votes)</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div class="table-container">
                     <table class="assignments-table">
                         <thead>
@@ -363,7 +452,7 @@
                                 <th>Reported By</th>
                                 <th>Priority & Upvotes</th>
                                 <th>Current Status</th>
-                                <th>Assign Work Order</th>
+                                <th>Details Action</th>
                             </tr>
                         </thead>
                         <tbody id="complaintsTableBody">
@@ -386,58 +475,22 @@
                                 <th>Email Address</th>
                                 <th>Phone Number</th>
                                 <th>Role</th>
-                                <th>NID Verification</th>
+                                <th>NID Status</th>
                                 <th>Account Status</th>
+                                <th>Details</th>
                                 <th>Control Action</th>
                             </tr>
                         </thead>
                         <tbody id="usersTableBody">
                             <tr>
-                                <td colspan="7" class="loading-text">Loading platform users...</td>
+                                <td colspan="8" class="loading-text">Loading platform users...</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Areas Management Section -->
-            <section id="areasSection" class="category-section" style="display: none;">
-                <h2>Geographic Areas Board</h2>
-                
-                <div class="category-layout">
-                    <!-- Existing Areas List -->
-                    <div class="categories-list">
-                        <h3>Registered Areas Catalog</h3>
-                        <div class="table-container" style="background: white; border-radius: 12px; padding: 1rem; border: 1px solid #edf2f7;">
-                            <table class="assignments-table" style="width: 100%; border-collapse: collapse;">
-                                <thead>
-                                    <tr style="border-bottom: 2px solid #edf2f7; text-align: left; font-size: 0.9rem; color: #4a5568;">
-                                        <th style="padding: 0.75rem 0.5rem;">Registered Addresses / Areas</th>
-                                        <th style="padding: 0.75rem 0.5rem; text-align: right;">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="areasTableBody">
-                                    <tr>
-                                        <td colspan="2" class="loading-text" style="text-align: center; padding: 2rem;">Loading geographic catalog...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
 
-                    <!-- Create New Area Form -->
-                    <div class="create-category-box">
-                        <h3>Register New Area</h3>
-                        <form id="areaCreateForm" class="category-form" onsubmit="handleAreaFormSubmit(event)">
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label for="areaNameInput" style="font-weight: 600; display: block; margin-bottom: 0.25rem;">Area Address / Name *</label>
-                                <input type="text" id="areaNameInput" required placeholder="e.g. Road 4, Sector 7, Uttara" style="width:100%; padding:0.6rem; border:1px solid #cbd5e1; border-radius:6px;">
-                            </div>
-                            <button type="submit" class="btn-create-category" style="width: 100%;">Add Geographic Area</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
         </main>
     </div>
 
@@ -478,13 +531,54 @@
             apiBaseUrl: "{{ request()->getBaseUrl() }}"
         };
 
+        // ── Sidebar Toggle ──────────────────────────────────────────────
+        let sidebarOpen = false;
+
+        function openSidebar() {
+            sidebarOpen = true;
+            const sidebar = document.getElementById('adminSidebar');
+            const main    = document.getElementById('adminMain');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.style.left = '0';
+            main.style.marginLeft = '280px';
+            main.style.width = 'calc(100% - 280px)';
+            backdrop.style.display = 'block';
+            // Animate hamburger to X
+            document.getElementById('ham1').style.transform = 'translateY(7.5px) rotate(45deg)';
+            document.getElementById('ham2').style.opacity  = '0';
+            document.getElementById('ham3').style.transform = 'translateY(-7.5px) rotate(-45deg)';
+        }
+
+        function closeSidebar() {
+            sidebarOpen = false;
+            const sidebar = document.getElementById('adminSidebar');
+            const main    = document.getElementById('adminMain');
+            const backdrop = document.getElementById('sidebarBackdrop');
+            sidebar.style.left = '-290px';
+            main.style.marginLeft = '0';
+            main.style.width = '100%';
+            backdrop.style.display = 'none';
+            // Reset hamburger lines
+            document.getElementById('ham1').style.transform = 'none';
+            document.getElementById('ham2').style.opacity  = '1';
+            document.getElementById('ham3').style.transform = 'none';
+        }
+
+        function toggleSidebar() {
+            if (sidebarOpen) { closeSidebar(); } else { openSidebar(); }
+        }
+
+        // Close sidebar with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && sidebarOpen) closeSidebar();
+        });
+
         function switchTab(tabId, btn) {
             // Hide all sections
             document.getElementById('analyticsSection').style.display = 'none';
             document.getElementById('complaintsSection').style.display = 'none';
             document.getElementById('categoriesSection').style.display = 'none';
             document.getElementById('usersSection').style.display = 'none';
-            document.getElementById('areasSection').style.display = 'none';
 
             // Show selected section
             document.getElementById(tabId + 'Section').style.display = 'block';
@@ -492,13 +586,13 @@
             // Update tab button styles
             document.querySelectorAll('.tab-btn').forEach(button => {
                 button.classList.remove('active');
-                button.style.color = '#64748b';
-                button.style.borderBottomColor = 'transparent';
+                button.style.color = 'rgba(255,255,255,0.8)';
+                button.style.background = 'none';
             });
 
             btn.classList.add('active');
-            btn.style.color = '#1e3c72';
-            btn.style.borderBottomColor = '#1e3c72';
+            btn.style.color = 'white';
+            btn.style.background = 'rgba(255,255,255,0.15)';
 
             // Correct Leaflet display size calculation when tab is loaded
             if (tabId === 'analytics' && typeof adminMap !== 'undefined' && adminMap !== null) {

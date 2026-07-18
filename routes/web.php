@@ -107,11 +107,6 @@ Route::middleware(['auth', 'role:admin', 'active'])->group(function () {
     Route::get('/admin/api/users', [AdminController::class, 'getUsers'])->name('admin.api.users');
     Route::post('/admin/api/users/{id}/toggle-active', [AdminController::class, 'toggleUserActive'])->name('admin.api.users.toggle');
     Route::post('/admin/api/users/{id}/verify-nid', [AdminController::class, 'verifyNid'])->name('admin.api.users.verify-nid');
-    
-    // Areas Management Routes
-    Route::get('/admin/api/areas', [AdminController::class, 'getAreas'])->name('admin.api.areas');
-    Route::post('/admin/api/areas', [AdminController::class, 'storeArea'])->middleware('sanitize')->name('admin.api.areas.store');
-    Route::delete('/admin/api/areas/{id}', [AdminController::class, 'deleteArea'])->name('admin.api.areas.delete');
 });
 
 require __DIR__.'/auth.php';

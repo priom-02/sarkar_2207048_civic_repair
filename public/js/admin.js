@@ -20,14 +20,13 @@ let detailMarker = null;
 // INITIALIZATION
 // ============================================
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     fetchAnalytics();
     fetchCategories();
     fetchWorkers().then(() => {
         fetchIssues();
     });
     fetchUsers();
-    fetchAreas();
     setupEventListeners();
     setupIconPreview();
 });
@@ -41,16 +40,16 @@ async function fetchAnalytics() {
         const response = await fetch(`${apiBase}/admin/api/analytics`);
         if (!response.ok) throw new Error('Failed to fetch analytics');
         const data = await response.json();
-        
+
         // 1. Update Metrics Counts
         updateMetrics(data.stats);
-        
+
         // 2. Render Heatmap Pins
         plotHeatmapPins(data.locations);
-        
+
         // 3. Draw Trends Graph
         renderTrendsChart(data.trends);
-        
+
     } catch (error) {
         console.error('Error fetching admin analytics:', error);
     }
@@ -130,7 +129,7 @@ function plotHeatmapPins(locations) {
         if (!loc.latitude || !loc.longitude) return;
 
         const color = loc.upvotes >= 40 ? '#ef4444' : '#f59e0b';
-        
+
         const circleMarker = L.circleMarker([loc.latitude, loc.longitude], {
             radius: loc.upvotes >= 40 ? 12 : 8,
             fillColor: color,
@@ -167,13 +166,13 @@ function renderTrendsChart(trends) {
     const sanitationContainer = document.getElementById('sanitation-bars');
     const labelsContainer = document.getElementById('chart-x-labels');
     if (!infraContainer || !sanitationContainer || !labelsContainer) return;
-    
+
     // Max scale calculation
     let maxCount = 1;
     trends.forEach(t => {
         maxCount = Math.max(maxCount, t.infrastructure, t.sanitation);
     });
-    
+
     // Dynamically scale Y-axis labels
     const label1 = document.getElementById('y-label-1');
     const label2 = document.getElementById('y-label-2');
@@ -185,7 +184,7 @@ function renderTrendsChart(trends) {
         label3.textContent = Math.round(maxCount * 0.75);
         label4.textContent = maxCount;
     }
-    
+
     const stepX = 45;
     const startX = 50;
 
@@ -199,7 +198,7 @@ function renderTrendsChart(trends) {
                 data-week="${t.label}" data-value="${t.infrastructure}" style="cursor: pointer; opacity: 0.85; transition: opacity 0.2s;" />
         `;
     }).join('');
-    
+
     sanitationContainer.innerHTML = trends.map((t, idx) => {
         const x = startX + idx * stepX + 15;
         const height = (t.sanitation / maxCount) * 200;
@@ -217,18 +216,18 @@ function renderTrendsChart(trends) {
             <text x="${x}" y="270" font-size="11" fill="#666" text-anchor="middle">${t.label}</text>
         `;
     }).join('');
-    
+
     // Attach details notifications to bars
     document.querySelectorAll('.trend-bar').forEach(bar => {
-        bar.addEventListener('mouseenter', function() {
+        bar.addEventListener('mouseenter', function () {
             this.style.opacity = '1';
             const week = this.getAttribute('data-week');
             const val = this.getAttribute('data-value');
             const category = this.getAttribute('fill') === '#4db8ff' ? 'Infrastructure' : 'Sanitation';
             showNotification(`📊 ${week} - ${category}: ${val} reports`, 'info');
         });
-        
-        bar.addEventListener('mouseleave', function() {
+
+        bar.addEventListener('mouseleave', function () {
             this.style.opacity = '0.85';
         });
     });
@@ -246,7 +245,7 @@ function setupEventListeners() {
 
     // Quick icon selection
     document.querySelectorAll('.quick-icon').forEach(icon => {
-        icon.addEventListener('click', function() {
+        icon.addEventListener('click', function () {
             const iconValue = this.getAttribute('data-icon');
             const input = document.getElementById('categoryIcon');
             if (input) {
@@ -264,7 +263,7 @@ function setupEventListeners() {
 function setupIconPreview() {
     const iconInput = document.getElementById('categoryIcon');
     if (iconInput) {
-        iconInput.addEventListener('input', function() {
+        iconInput.addEventListener('input', function () {
             updateIconPreview(this.value);
         });
     }
@@ -290,6 +289,7 @@ async function handleCategorySubmit(e) {
 
     const name = document.getElementById('categoryName').value.trim();
     const description = document.getElementById('categoryDescription').value.trim();
+    const icon = document.getElementById('categoryIcon').value.trim();
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
     if (!name || !description) {
@@ -306,7 +306,8 @@ async function handleCategorySubmit(e) {
             },
             body: JSON.stringify({
                 name: name,
-                description: description
+                description: description,
+                icon: icon
             })
         });
 
@@ -318,9 +319,9 @@ async function handleCategorySubmit(e) {
         if (data.success) {
             document.getElementById('categoryForm').reset();
             document.getElementById('iconPreview').textContent = '🛣️';
-            
+
             showNotification(`✓ Category "${name}" created successfully!`, 'success');
-            
+
             // Reload list and charts
             fetchCategories();
             fetchAnalytics();
@@ -339,23 +340,8 @@ function renderCategories() {
 
     container.innerHTML = '';
 
-    const categoryEmoji = {
-        'Broken Road / Pothole': '🛣️',
-        'Garbage & Waste': '♻️',
-        'Water Leakage / Supply': '💧',
-        'Sewerage & Drainage': '🚽',
-        'Street Lighting': '💡',
-        'Electricity / Power': '⚡',
-        'Traffic & Signals': '🚦',
-        'Tree / Vegetation': '🌳',
-        'Public Property Damage': '🏛️',
-        'Noise & Air Pollution': '💨',
-        'Footpath / Pavement': '🚶',
-        'Other': '📋'
-    };
-
     currentCategories.forEach(category => {
-        const emoji = categoryEmoji[category.category_name] || '📋';
+        const emoji = category.icon || '📋';
         const categoryItem = document.createElement('div');
         categoryItem.className = 'category-item default-item';
         categoryItem.setAttribute('data-category-id', category.id);
@@ -420,7 +406,7 @@ function closeBanner() {
 }
 
 // Keyboard shortcuts
-document.addEventListener('keydown', function(e) {
+document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
         closeBanner();
     }
@@ -429,6 +415,11 @@ document.addEventListener('keydown', function(e) {
 // ============================================
 // ASSIGNMENT RENDERING & DISPATCH HANDLERS
 // ============================================
+
+function filterIssuesByPriority() {
+    renderIssuesTable();
+}
+window.filterIssuesByPriority = filterIssuesByPriority;
 
 function renderIssuesTable() {
     const tbody = document.getElementById('complaintsTableBody');
@@ -439,7 +430,28 @@ function renderIssuesTable() {
         return;
     }
 
-    tbody.innerHTML = currentIssues.map(issue => {
+    const priorityFilter = document.getElementById('priorityFilter')?.value || 'all';
+
+    const filteredIssues = currentIssues.filter(issue => {
+        let priority = 'Low';
+        if (issue.upvote_count >= 40) {
+            priority = 'High';
+        } else if (issue.upvote_count >= 20) {
+            priority = 'Medium';
+        }
+
+        if (priorityFilter !== 'all' && priority !== priorityFilter) {
+            return false;
+        }
+        return true;
+    });
+
+    if (filteredIssues.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="loading-text">No complaints matching the selected priority.</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filteredIssues.map(issue => {
         // Priority calculation based on upvotes
         let priority = 'Low';
         let priorityClass = 'priority-low';
@@ -457,54 +469,8 @@ function renderIssuesTable() {
         // Status badge configuration
         const statusClean = issue.status_name.toLowerCase().replace(/\s+/g, '');
         let statusBadgeClass = `status-${statusClean}`;
-        
-        // Category emoji mapping
-        const categoryEmoji = {
-            'Broken Road / Pothole': '🛣️',
-            'Garbage & Waste': '♻️',
-            'Water Leakage / Supply': '💧',
-            'Sewerage & Drainage': '🚽',
-            'Street Lighting': '💡',
-            'Electricity / Power': '⚡',
-            'Traffic & Signals': '🚦',
-            'Tree / Vegetation': '🌳',
-            'Public Property Damage': '🏛️',
-            'Noise & Air Pollution': '💨',
-            'Footpath / Pavement': '🚶',
-            'Other': '📋'
-        };
-        const catEmoji = categoryEmoji[issue.category_name] || '📋';
 
-        // Worker options
-        const workerOptionsHTML = currentWorkers.map(w => {
-            const isSelected = w.id === issue.assigned_worker_id ? 'selected' : '';
-            const caseload = w.active_caseload !== undefined ? ` (${w.active_caseload} active)` : '';
-            return `<option value="${w.id}" ${isSelected}>${escapeHtml(w.full_name)}${caseload}</option>`;
-        }).join('');
-
-        // Action controls based on status
-        let assignmentControlHTML = '';
-        if (issue.status_id >= 5) {
-            // Completed, resolved, closed, rejected
-            assignmentControlHTML = `
-                <div class="assigned-worker-info" style="font-weight: 600; color: #16a34a; font-size: 0.9rem;">
-                    Completed by:<br>${escapeHtml(issue.assigned_worker_name)}
-                </div>
-            `;
-        } else {
-            assignmentControlHTML = `
-                <form class="assign-form" data-issue-id="${issue.id}">
-                    <select class="assign-select" name="worker_id" required>
-                        <option value="">-- Choose Field Worker --</option>
-                        ${workerOptionsHTML}
-                    </select>
-                    <textarea class="assign-notes" name="notes" placeholder="Dispatch instructions / notes..." maxlength="255"></textarea>
-                    <button type="submit" class="btn-assign">
-                        <span>🚀</span> Dispatch Worker
-                    </button>
-                </form>
-            `;
-        }
+        const catEmoji = issue.category_icon || '📋';
 
         return `
             <tr id="issue-row-${issue.id}">
@@ -516,7 +482,6 @@ function renderIssuesTable() {
                     <div style="font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 0.25rem;">
                         <span>${catEmoji}</span> ${escapeHtml(issue.category_name)}
                     </div>
-                    <div style="font-size: 0.85rem; color: #64748b; margin-top: 0.25rem;">📍 ${escapeHtml(issue.area_name)}</div>
                 </td>
                 <td>
                     <div style="font-weight: 500;">${escapeHtml(issue.reported_by)}</div>
@@ -529,37 +494,27 @@ function renderIssuesTable() {
                 <td>
                     <span class="status-badge ${statusBadgeClass}">${escapeHtml(issue.status_name)}</span>
                     ${issue.assigned_worker_id ? `<div style="font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; font-style: italic;">Assigned to: ${escapeHtml(issue.assigned_worker_name)}</div>` : ''}
-                    <button onclick="showIssueDetails(${issue.id})" class="btn-assign" style="margin-top: 0.5rem; padding: 0.35rem 0.6rem; font-size: 0.78rem; background: #64748b; border: 1px solid #64748b; width: 100%; justify-content: center; display: inline-flex;">👁️ Details</button>
                 </td>
                 <td>
-                    ${assignmentControlHTML}
+                    <button onclick="showIssueDetails(${issue.id})" class="btn-assign" style="padding: 0.5rem 1rem; width: 100%; justify-content: center; display: inline-flex; font-weight: 700;">👁️ View Details</button>
                 </td>
             </tr>
         `;
     }).join('');
-
-    // Attach event listeners to assignment forms
-    tbody.querySelectorAll('.assign-form').forEach(form => {
-        form.addEventListener('submit', handleAssignmentSubmit);
-    });
 }
 
 async function handleAssignmentSubmit(e) {
     e.preventDefault();
     const form = this;
     const issueId = form.getAttribute('data-issue-id');
-    const workerId = form.querySelector('[name="worker_id"]').value;
-    const notes = form.querySelector('[name="notes"]').value.trim();
-    const btn = form.querySelector('button[type="submit"]');
-
-    if (!workerId) {
-        showNotification('Please select a field worker to assign', 'error');
-        return;
-    }
-
+    const workerId = form.querySelector('select[name="worker_id"]').value;
+    const notes = form.querySelector('textarea[name="notes"]').value;
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    btn.disabled = true;
-    btn.innerHTML = 'Dispatching...';
+
+    const button = form.querySelector('button[type="submit"]');
+    const originalText = button.textContent;
+    button.disabled = true;
+    button.textContent = 'Dispatching...';
 
     try {
         const response = await fetch(`${apiBase}/admin/api/assignments`, {
@@ -576,25 +531,28 @@ async function handleAssignmentSubmit(e) {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to dispatch worker assignment');
+            throw new Error('Failed to assign worker');
         }
 
         const data = await response.json();
         if (data.success) {
             showNotification('✓ Worker dispatched successfully!', 'success');
+            if (typeof closeDetailsModal === 'function') {
+                closeDetailsModal();
+            }
             // Refresh dashboard counts and issues list
             fetchAnalytics();
             fetchIssues();
         } else {
             showNotification(data.message || 'Error assigning worker', 'error');
-            btn.disabled = false;
-            btn.innerHTML = 'Dispatch Worker';
+            button.disabled = false;
+            button.textContent = originalText;
         }
     } catch (error) {
         console.error('Assignment dispatch error:', error);
-        showNotification('Could not assign task. Please try again.', 'error');
-        btn.disabled = false;
-        btn.innerHTML = 'Dispatch Worker';
+        showNotification('Could not dispatch worker. Please try again.', 'error');
+        button.disabled = false;
+        button.textContent = originalText;
     }
 }
 
@@ -624,7 +582,7 @@ function renderUsersTable() {
     if (!tbody) return;
 
     if (currentUsers.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="loading-text">No registered users found.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="loading-text">No registered users found.</td></tr>`;
         return;
     }
 
@@ -637,32 +595,27 @@ function renderUsersTable() {
             ? `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #ef4444; border-color: #ef4444; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Deactivate</button>`
             : `<button onclick="toggleUserStatus(${user.id}, this)" class="logout-btn" style="background-color: #10b981; border-color: #10b981; font-size: 0.85rem; padding: 0.4rem 0.8rem; cursor: pointer; border-radius: 6px; color: white;">Activate</button>`;
 
+        // NID Status column — status badge only, no NID number
         let nidCol = '<span style="color: #94a3b8; font-size: 0.9rem;">N/A</span>';
-        if (user.role_name === 'Citizen' && user.nid_number) {
-            let badgeColor = '';
-            let badgeText = '';
-            let actionBtnText = 'View';
-            
-            if (user.nid_verified === 'verified') {
-                badgeColor = 'background-color: #d1fae5; color: #065f46;';
-                badgeText = 'Verified';
-            } else if (user.nid_verified === 'rejected') {
-                badgeColor = 'background-color: #fee2e2; color: #991b1b;';
-                badgeText = 'Rejected';
-                actionBtnText = 'Review';
+        if (user.role_name === 'Citizen' || user.role_name === 'citizen') {
+            if (user.nid_number) {
+                let badgeColor = 'background-color: #fef3c7; color: #92400e;';
+                let badgeText = 'Pending';
+                if (user.nid_verified === 'verified') {
+                    badgeColor = 'background-color: #d1fae5; color: #065f46;';
+                    badgeText = 'Verified';
+                } else if (user.nid_verified === 'rejected') {
+                    badgeColor = 'background-color: #fee2e2; color: #991b1b;';
+                    badgeText = 'Rejected';
+                }
+                nidCol = `<span class="status-badge" style="${badgeColor} padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-block;">${badgeText}</span>`;
             } else {
-                badgeColor = 'background-color: #fef3c7; color: #92400e;';
-                badgeText = 'Pending';
-                actionBtnText = 'Verify';
+                nidCol = `<span style="color: #f59e0b; font-size: 0.85rem; font-weight: 600;">Not Submitted</span>`;
             }
-
-            nidCol = `
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span class="status-badge" style="${badgeColor} padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; display: inline-block;">${badgeText}</span>
-                    <button onclick="openNidModal(${user.id})" style="background-color: #0284c7; border: none; font-size: 0.75rem; padding: 0.35rem 0.7rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; transition: all 0.2s;">${actionBtnText}</button>
-                </div>
-            `;
         }
+
+        // Details button for every user
+        const detailsBtn = `<button onclick="openUserDetailsModal(${user.id})" style="background: linear-gradient(135deg, #0d9488, #0891b2); border: none; font-size: 0.82rem; padding: 0.4rem 0.85rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.3rem;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🔍 Details</button>`;
 
         return `
             <tr>
@@ -675,6 +628,7 @@ function renderUsersTable() {
                 <td style="font-weight: 500; color: #475569;">${escapeHtml(user.role_name)}</td>
                 <td>${nidCol}</td>
                 <td>${statusBadge}</td>
+                <td>${detailsBtn}</td>
                 <td>${actionBtn}</td>
             </tr>
         `;
@@ -717,7 +671,7 @@ async function toggleUserStatus(userId, button) {
     }
 }
 
-function openNidModal(userId) {
+function openUserDetailsModal(userId) {
     const user = currentUsers.find(u => u.id === userId);
     if (!user) return;
 
@@ -725,38 +679,115 @@ function openNidModal(userId) {
     const body = document.getElementById('nidModalBody');
     if (!modal || !body) return;
 
+    const isCitizen = user.role_name === 'Citizen' || user.role_name === 'citizen';
+    const hasNid = isCitizen && user.nid_number;
+
+    // NID verification status badge
+    let nidStatusHtml = '';
+    if (hasNid) {
+        let badgeColor = '#fef3c7; color: #92400e';
+        let badgeText = 'Pending Review';
+        if (user.nid_verified === 'verified') { badgeColor = '#d1fae5; color: #065f46'; badgeText = '✅ Verified'; }
+        if (user.nid_verified === 'rejected') { badgeColor = '#fee2e2; color: #991b1b'; badgeText = '❌ Rejected'; }
+        nidStatusHtml = `<span style="background: ${badgeColor}; padding: 0.3rem 0.9rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700;">${badgeText}</span>`;
+    }
+
+    // NID actions (verify / reject buttons)
+    let nidActionsHtml = '';
+    if (hasNid) {
+        nidActionsHtml = `
+            <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #edf2f7; padding-top: 1.25rem; margin-top: 1.5rem;">
+                <button onclick="verifyNid(${user.id}, 'reject', this)" style="background-color: #ef4444; border: none; font-size: 0.9rem; padding: 0.6rem 1.4rem; cursor: pointer; border-radius: 8px; color: white; font-weight: 700;">
+                    ❌ Reject NID
+                </button>
+                <button onclick="verifyNid(${user.id}, 'verify', this)" style="background-color: #10b981; border: none; font-size: 0.9rem; padding: 0.6rem 1.4rem; cursor: pointer; border-radius: 8px; color: white; font-weight: 700;">
+                    ✅ Verify NID
+                </button>
+            </div>`;
+    }
+
     body.innerHTML = `
-        <h3 style="font-size: 1.25rem; font-weight: 700; color: #0f172a; margin-bottom: 1.25rem;">NID Details: ${escapeHtml(user.full_name)}</h3>
-        <p style="margin-bottom: 1rem; color: #475569;"><strong>NID Number:</strong> <span style="font-family: monospace; font-size: 1.1rem; font-weight: 700; color: #0d9488; padding: 0.2rem 0.5rem; background: rgba(13, 148, 136, 0.05); border-radius: 4px; border: 1px solid rgba(13, 148, 136, 0.1);">${escapeHtml(user.nid_number || 'Not Provided')}</span></p>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-            <div>
-                <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b;">FRONT SIDE PHOTO</strong>
-                ${user.nid_front_photo 
-                    ? `<a href="${user.nid_front_photo}" target="_blank"><img src="${user.nid_front_photo}" style="width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-height: 220px; object-fit: contain; background: #f8fafc;" alt="NID Front"></a>` 
-                    : `<div style="padding: 3rem 1rem; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; color: #94a3b8; background: #f8fafc;">No front photo uploaded</div>`}
+        <!-- Header -->
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 2px solid #f1f5f9;">
+            <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0d9488, #0891b2); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800; color: white; flex-shrink: 0;">
+                ${escapeHtml(user.full_name.charAt(0).toUpperCase())}
             </div>
             <div>
-                <strong style="display: block; margin-bottom: 0.5rem; font-size: 0.9rem; color: #64748b;">BACK SIDE PHOTO</strong>
-                ${user.nid_back_photo 
-                    ? `<a href="${user.nid_back_photo}" target="_blank"><img src="${user.nid_back_photo}" style="width: 100%; border-radius: 8px; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-height: 220px; object-fit: contain; background: #f8fafc;" alt="NID Back"></a>` 
-                    : `<div style="padding: 3rem 1rem; text-align: center; border: 1px dashed #cbd5e1; border-radius: 8px; color: #94a3b8; background: #f8fafc;">No back photo uploaded</div>`}
+                <h3 style="font-size: 1.3rem; font-weight: 800; color: #0f172a; margin: 0;">${escapeHtml(user.full_name)}</h3>
+                <div style="display: flex; align-items: center; gap: 0.6rem; margin-top: 0.3rem;">
+                    <span style="font-size: 0.8rem; color: #64748b; font-weight: 500;">ID #${user.id}</span>
+                    <span style="color: #cbd5e1;">•</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; text-transform: capitalize; color: #0d9488;">${escapeHtml(user.role_name)}</span>
+                    ${user.is_active
+                        ? '<span style="background: #d1fae5; color: #065f46; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 9999px;">Active</span>'
+                        : '<span style="background: #fee2e2; color: #991b1b; font-size: 0.75rem; font-weight: 700; padding: 0.15rem 0.6rem; border-radius: 9999px;">Deactivated</span>'}
+                </div>
+            </div>
+            ${hasNid ? `<div style="margin-left: auto;">${nidStatusHtml}</div>` : ''}
+        </div>
+
+        <!-- Contact Info Grid -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
+                <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.35rem;">📧 Email</div>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #1e293b; word-break: break-all;">${escapeHtml(user.email)}</div>
+            </div>
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem;">
+                <div style="font-size: 0.72rem; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.35rem;">📱 Phone</div>
+                <div style="font-size: 0.9rem; font-weight: 600; color: #1e293b;">${escapeHtml(user.phone)}</div>
             </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 1rem; border-top: 1px solid #edf2f7; padding-top: 1.25rem;">
-            <button onclick="verifyNid(${user.id}, 'reject', this)" style="background-color: #ef4444; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-                ❌ Reject NID
-            </button>
-            <button onclick="verifyNid(${user.id}, 'verify', this)" style="background-color: #10b981; border: none; font-size: 0.9rem; padding: 0.6rem 1.2rem; cursor: pointer; border-radius: 6px; color: white; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem;">
-                ✅ Verify NID
-            </button>
+        ${hasNid ? `
+        <!-- NID Number (Sensitive — only in this modal) -->
+        <div style="background: linear-gradient(135deg, rgba(13,148,136,0.06), rgba(8,145,178,0.06)); border: 1px solid rgba(13,148,136,0.2); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div>
+                <div style="font-size: 0.72rem; font-weight: 800; color: #0d9488; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 0.3rem;">🪪 National ID Number</div>
+                <div style="font-family: 'Courier New', monospace; font-size: 1.25rem; font-weight: 800; color: #0f172a; letter-spacing: 0.05em;">${escapeHtml(user.nid_number)}</div>
+            </div>
+            ${nidStatusHtml}
         </div>
+
+        <!-- NID Photos -->
+        <div style="margin-bottom: 0.5rem;">
+            <div style="font-size: 0.8rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 1rem;">📷 NID Photos</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;">
+                <div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.3rem;">⬆️ FRONT SIDE</div>
+                    ${user.nid_front_photo
+                        ? `<a href="${user.nid_front_photo}" target="_blank" title="Click to open full size">
+                               <img src="${user.nid_front_photo}" style="width: 100%; border-radius: 10px; border: 2px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.07); max-height: 200px; object-fit: contain; background: #f8fafc; transition: transform 0.2s;" alt="NID Front" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                           </a>`
+                        : `<div style="padding: 2.5rem 1rem; text-align: center; border: 2px dashed #cbd5e1; border-radius: 10px; color: #94a3b8; background: #f8fafc; font-size: 0.85rem;">📷 No front photo uploaded</div>`}
+                </div>
+                <div>
+                    <div style="font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.3rem;">⬇️ BACK SIDE</div>
+                    ${user.nid_back_photo
+                        ? `<a href="${user.nid_back_photo}" target="_blank" title="Click to open full size">
+                               <img src="${user.nid_back_photo}" style="width: 100%; border-radius: 10px; border: 2px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.07); max-height: 200px; object-fit: contain; background: #f8fafc; transition: transform 0.2s;" alt="NID Back" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+                           </a>`
+                        : `<div style="padding: 2.5rem 1rem; text-align: center; border: 2px dashed #cbd5e1; border-radius: 10px; color: #94a3b8; background: #f8fafc; font-size: 0.85rem;">📷 No back photo uploaded</div>`}
+                </div>
+            </div>
+        </div>
+        ` : `
+        <!-- Non-citizen or no NID -->
+        <div style="text-align: center; padding: 2rem; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1; color: #94a3b8;">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🪪</div>
+            <div style="font-weight: 600; font-size: 0.9rem;">${isCitizen ? 'No NID document submitted yet' : 'NID verification not applicable for this role'}</div>
+        </div>
+        `}
+
+        ${nidActionsHtml}
     `;
 
     modal.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
+
+// Keep backward-compatible alias used by old code paths
+function openNidModal(userId) { openUserDetailsModal(userId); }
+
 
 async function verifyNid(userId, action, button) {
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -981,6 +1012,40 @@ async function showIssueDetails(issueId) {
     const statusClean = issue.status_name.toLowerCase().replace(/\s+/g, '');
     const statusBadgeClass = `status-${statusClean}`;
 
+    // Worker options
+    const workerOptionsHTML = currentWorkers.map(w => {
+        const isSelected = w.id === issue.assigned_worker_id ? 'selected' : '';
+        const caseload = w.active_caseload !== undefined ? ` (${w.active_caseload} active)` : '';
+        return `<option value="${w.id}" ${isSelected}>${escapeHtml(w.full_name)}${caseload}</option>`;
+    }).join('');
+
+    let dispatchFormHTML = '';
+    if (issue.status_id < 5) {
+        dispatchFormHTML = `
+            <div style="margin-top: 1.5rem; background: #f0fdf4; border-radius: 12px; border: 1px dashed #bbf7d0; padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <h4 style="font-size: 0.95rem; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 0.25rem; margin: 0;">
+                    🚀 Dispatch / Reassign Field Worker
+                </h4>
+                <form class="assign-form" data-issue-id="${issue.id}" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <select class="assign-select" name="worker_id" required style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.9rem;">
+                        <option value="">-- Choose Field Worker --</option>
+                        ${workerOptionsHTML}
+                    </select>
+                    <textarea class="assign-notes" name="notes" placeholder="Dispatch instructions / notes..." maxlength="255" style="width: 100%; padding: 0.6rem; border: 1px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.85rem; height: 60px; resize: none;"></textarea>
+                    <button type="submit" class="btn-assign" style="width: 100%; justify-content: center; display: inline-flex; font-weight: 700; padding: 0.6rem 1.2rem; background: #16a34a; border: 1px solid #16a34a; color: white; border-radius: 8px; cursor: pointer;">
+                        Dispatch Worker
+                    </button>
+                </form>
+            </div>
+        `;
+    } else {
+        dispatchFormHTML = `
+            <div style="margin-top: 1.5rem; background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; text-align: center; color: #16a34a; font-weight: 700; margin-bottom: 1.5rem; font-size: 0.9rem;">
+                ✅ Completed by ${escapeHtml(issue.assigned_worker_name)}
+            </div>
+        `;
+    }
+
     body.innerHTML = `
         <div style="border-bottom: 2px solid #f1f5f9; padding-bottom: 1.25rem; margin-bottom: 1.5rem;">
             <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
@@ -1013,13 +1078,15 @@ async function showIssueDetails(issueId) {
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2rem;">
             <div>
                 <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Metadata & Assignment</h3>
-                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem; margin-bottom: 1.5rem;">
+                <div style="background: #f8fafc; border-radius: 12px; border: 1px solid #edf2f7; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Reported By:</span><strong style="color: #1e293b;">${escapeHtml(issue.reported_by)}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Submitted:</span><strong style="color: #1e293b;">${issue.time_ago}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Area/Union:</span><strong style="color: #1e293b;">📍 ${escapeHtml(issue.area_name)}</strong></div>
                     <div style="display: flex; justify-content: space-between;"><span style="color: #64748b;">Upvotes:</span><strong style="color: #1e293b;">👍 ${issue.upvote_count} upvotes</strong></div>
                     <div style="display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 0.75rem; margin-top: 0.25rem;"><span style="color: #64748b;">Assigned Worker:</span><strong style="color: #3b82f6;">${escapeHtml(issue.assigned_worker_name)}</strong></div>
                 </div>
+
+                ${dispatchFormHTML}
 
                 <h3 style="font-size: 1.05rem; font-weight: 800; color: #1e293b; margin-bottom: 0.75rem;">Issue Location Coordinates Map</h3>
                 <div id="detailMap" style="height: 220px; border-radius: 12px; border: 1px solid #edf2f7; background: #f8fafc; z-index: 1;"></div>
@@ -1036,6 +1103,12 @@ async function showIssueDetails(issueId) {
     // Display body
     loading.style.display = 'none';
     body.style.display = 'block';
+
+    // Attach event listener to assignment form in the modal
+    const assignForm = body.querySelector('.assign-form');
+    if (assignForm) {
+        assignForm.addEventListener('submit', handleAssignmentSubmit);
+    }
 
     // Render detail map if coordinates exist
     renderDetailMap(issue.latitude, issue.longitude, issue.title);
@@ -1077,7 +1150,5 @@ function renderDetailMap(lat, lng, title) {
     }, 200);
 }
 
-window.handleAreaFormSubmit = handleAreaFormSubmit;
-window.deleteGeographicArea = deleteGeographicArea;
 window.showIssueDetails = showIssueDetails;
 

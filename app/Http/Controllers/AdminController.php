@@ -107,11 +107,13 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:80|unique:issue_categories,category_name',
             'description' => 'required|string',
+            'icon' => 'nullable|string|max:10',
         ]);
 
         $category = IssueCategory::create([
             'category_name' => $request->name,
             'description' => $request->description,
+            'icon' => $request->icon ?: '📋',
         ]);
 
         return response()->json([
@@ -150,6 +152,7 @@ class AdminController extends Controller
                     'title' => $issue->title,
                     'description' => $issue->description,
                     'category_name' => $issue->category->category_name ?? 'Other',
+                    'category_icon' => $issue->category->icon ?? '📋',
                     'area_name' => $issue->area->area_name ?? 'N/A',
                     'status_name' => $issue->status->status_name ?? 'Pending',
                     'status_id' => $issue->status_id,
@@ -317,67 +320,5 @@ class AdminController extends Controller
         ]);
     }
 
-    /**
-     * Fetch all areas.
-     */
-    public function getAreas(): JsonResponse
-    {
-        $areas = \App\Models\Area::orderBy('area_name', 'asc')->get();
-        return response()->json([
-            'areas' => $areas
-        ]);
-    }
 
-    /**
-     * Store a new area.
-     */
-    public function storeArea(Request $request): JsonResponse
-    {
-        $request->validate([
-            'area_name' => 'required|string|max:100|unique:areas,area_name',
-        ]);
-
-        $areaName = ucwords(strtolower(trim($request->area_name)));
-
-        $area = \App\Models\Area::create([
-            'division' => 'N/A',
-            'district' => 'N/A',
-            'upazila' => 'N/A',
-            'union_parishad' => null,
-            'area_name' => $areaName,
-            'city' => 'N/A',
-            'latitude_center' => 23.8103,
-            'longitude_center' => 90.4125,
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Area address registered successfully!',
-            'area' => $area
-        ]);
-    }
-
-    /**
-     * Delete an area.
-     */
-    public function deleteArea($id): JsonResponse
-    {
-        $area = \App\Models\Area::findOrFail($id);
-
-        // Check if there are active issues associated with this area
-        $hasIssues = Issue::where('area_id', $id)->exists();
-        if ($hasIssues) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Cannot delete this area because there are active reported issues linked to it.'
-            ], 422);
-        }
-
-        $area->delete();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Area deleted successfully!'
-        ]);
-    }
 }

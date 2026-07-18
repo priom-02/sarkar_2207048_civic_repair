@@ -67,15 +67,12 @@
 
                 <!-- Today's Summary -->
                 <section class="summary-section">
-                    <h3>Today's Summary</h3>
+                    <h3>Summary</h3>
                     <div class="summary-item">
-                        <span>Tasks Completed</span>
+                        <span>Resolved Tasks</span>
                         <strong id="summaryCompleted">7 of 12</strong>
                     </div>
-                    <div class="summary-item">
-                        <span>Avg. Completion Time</span>
-                        <strong id="summaryAvgTime">1h 45m</strong>
-                    </div>
+
                     <div class="summary-item">
                         <span>Next Priority</span>
                         <strong id="summaryNextPriority">Pothole Repair</strong>

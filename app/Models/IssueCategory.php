@@ -13,6 +13,7 @@ class IssueCategory extends Model
     protected $fillable = [
         'category_name',
         'description',
+        'icon',
     ];
 
     /**

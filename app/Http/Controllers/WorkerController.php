@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Issue;
+use App\Models\IssueFeedback;
 use App\Models\IssueAssignment;
 use App\Models\StatusHistory;
 use App\Models\IssueStatus;
@@ -114,7 +115,14 @@ class WorkerController extends Controller
         // Calculate statistics
         $totalCount = $assignments->count();
         $highPriorityCount = $assignments->where('priority', 'High')->count();
-        $completedCount = $assignments->where('status', 'completed')->count();
+
+        // Total resolved all-time for this worker (status 5=Resolved, 6=Closed)
+        $allTimeResolved = IssueAssignment::where('worker_id', $workerId)
+            ->whereHas('issue', fn($q) => $q->whereIn('status_id', [5, 6]))
+            ->count();
+        $allTimeTotal = IssueAssignment::where('worker_id', $workerId)->count();
+
+        $completedCount = $allTimeResolved;
 
         // Calculate average completion time
         $completedAssignments = IssueAssignment::where('worker_id', $workerId)
@@ -142,11 +150,15 @@ class WorkerController extends Controller
             } else {
                 $avgTimeText = round($avgMinutes) . ' mins';
             }
-            $rating = max(3.5, min(5.0, round(5.0 - (($avgMinutes / 60) / 48) * 0.5, 1)));
         } else {
             $avgTimeText = 'N/A';
-            $rating = 5.0;
         }
+
+        // Compute real average rating from citizen feedback for all issues this worker resolved
+        $workerIssueIds = IssueAssignment::where('worker_id', $workerId)->pluck('issue_id');
+        $avgRating = IssueFeedback::whereIn('issue_id', $workerIssueIds)->avg('rating');
+        $ratingText = $avgRating ? round($avgRating, 1) . ' / 5.0' : 'No ratings yet';
+
 
         // Get next highest priority task
         $nextPriorityObj = $assignments->where('status', '!==', 'completed')->sortByDesc(function($a) {
@@ -160,9 +172,9 @@ class WorkerController extends Controller
                 'total' => $totalCount,
                 'high' => $highPriorityCount,
                 'completed' => $completedCount,
-                'completed_text' => "{$completedCount} of {$totalCount}",
+                'completed_text' => "{$allTimeResolved} of {$allTimeTotal}",
                 'avg_time' => $avgTimeText,
-                'rating' => "{$rating} / 5.0",
+                'rating' => $ratingText,
                 'next_priority' => $nextPriorityTitle,
             ]
         ]);
